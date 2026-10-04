@@ -141,7 +141,7 @@ private const val KEY_TTS_RATE     = "tts_rate"
 private const val KEY_TTS_PITCH    = "tts_pitch"
 
 private val DEFAULT_API_KEY = com.vectorheart.asuna.BuildConfig.OPENROUTER_API_KEY
-private const val DEFAULT_MODEL = "google/gemini-2.0-flash-exp:free"
+private const val DEFAULT_MODEL = "openrouter/free"
 private const val MEMORY_WINDOW = 20
 
 private val AVAILABLE_MODELS = listOf(
@@ -612,7 +612,7 @@ fun ChatScreen(
                     when (newType) {
                         "gemini" -> {
                             baseUrl = "https://generativelanguage.googleapis.com/v1beta"
-                            model = "gemini-2.0-flash"
+                            model = "gemini-3.8-flash"
                         }
                         "deepseek" -> {
                             baseUrl = "https://api.deepseek.com/v1"
@@ -630,7 +630,7 @@ fun ChatScreen(
                         }
                         "anthropic" -> {
                             baseUrl = "https://api.anthropic.com/v1"
-                            model = "claude-3-5-sonnet-20241022"
+                            model = "claude-sonnet-5-5"
                         }
                         "openai" -> {
                             baseUrl = "https://api.openai.com/v1"
@@ -638,7 +638,7 @@ fun ChatScreen(
                         }
                         else -> {
                             baseUrl = "https://openrouter.ai/api/v1"
-                            model = "google/gemini-2.0-flash-exp:free"
+                            model = "openrouter/free"
                         }
                     }
                 },

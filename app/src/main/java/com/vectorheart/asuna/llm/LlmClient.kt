@@ -88,9 +88,16 @@ class LlmClient @Inject constructor(
             Action()
         }
 
-        // Очищаем реплику от тегов для отображения пользователю
+        // Очищаем реплику от тегов для отображения пользователю.
         var display = live2dRegex.replace(rawText, "")
-        display = Regex("""<tool>[\s\S]*?</tool>""").replace(display, "").trim()
+        display = Regex("""<tool>[\s\S]*?</tool>""").replace(display, "")
+        // Мысли модели (DeepSeek-R1 / Gemini Thinking) не должны попадать в чат
+        display = Regex("""<think>[\s\S]*?</think>""", RegexOption.IGNORE_CASE).replace(display, "")
+        // Незакрытые теги (ответ оборвался по max_tokens) тоже прячем
+        display = Regex("""<live2d>[\s\S]*$""").replace(display, "")
+        display = Regex("""<tool>[\s\S]*$""").replace(display, "")
+        display = Regex("""<think>[\s\S]*$""", RegexOption.IGNORE_CASE).replace(display, "")
+        display = display.replace(Regex("""</?(live2d|tool|think)>""", RegexOption.IGNORE_CASE), "").trim()
 
         return ParseResult(display, action, toolCall)
     }
@@ -196,10 +203,10 @@ class LlmClient @Inject constructor(
 
         val defaultModel = when {
             isDeepSeek -> "deepseek-chat"
-            isOpenRouter -> "google/gemini-2.0-flash-exp:free"
+            isOpenRouter -> "openrouter/free"
             isLocal -> "qwen2.5-1.5b-instruct"
             apiType == "openai" -> "gpt-4o-mini"
-            else -> "google/gemini-2.0-flash-exp:free"
+            else -> "openrouter/free"
         }
 
         val finalModel = if (model.isNullOrBlank()) defaultModel else model
@@ -229,7 +236,7 @@ class LlmClient @Inject constructor(
                 addHeader("Content-Type", "application/json")
                 addHeader("User-Agent", "Mozilla/5.0 (Android 14; Xiaomi Mi 11T) AsunaCompanion/2.0")
                 if (isOpenRouter) {
-                    addHeader("HTTP-Referer", "https://github.com/KaDZuto/Asuna_Brand_New_Angent_v2")
+                    addHeader("HTTP-Referer", "https://github.com/KaDZuto/Asuna-android-v3-Gemini-update")
                     addHeader("X-Title", "Asuna Companion")
                 }
             }
@@ -276,15 +283,11 @@ class LlmClient @Inject constructor(
                 else -> null
             }
 
-            if (!textContent.isNullOrBlank()) return textContent
-
-            // Fallback for reasoning models (DeepSeek-R1 / thinking)
+            // Рассуждающие модели (DeepSeek-R1): не отдаём reasoning_content как ответ
             val reasoning = message["reasoning_content"]?.jsonPrimitive?.contentOrNull
-            if (!reasoning.isNullOrBlank()) {
-                return reasoning
-            }
+            if (!textContent.isNullOrBlank() && textContent.isNotBlank()) return textContent
 
-            throw RuntimeException("Модель вернула пустой content. Ответ: ${raw.take(200)}")
+            throw RuntimeException("Модель вернула пустой content${if (!reasoning.isNullOrBlank()) " (есть только reasoning_content)" else ""}. Ответ: ${raw.take(200)}")
         }
     }
 
@@ -305,7 +308,7 @@ class LlmClient @Inject constructor(
         }
 
         val body = buildJsonObject {
-            put("model", if (model.isNullOrBlank()) "claude-3-5-sonnet-20241022" else model)
+            put("model", if (model.isNullOrBlank()) "claude-sonnet-5-5" else model)
             put("max_tokens", 800)
             put("system", sys)
             put("messages", messages)
@@ -346,7 +349,7 @@ class LlmClient @Inject constructor(
         if (apiKey.isNullOrBlank()) throw IllegalArgumentException("API-ключ обязателен для Gemini (получи бесплатный ключ в Google AI Studio: aistudio.google.com)")
 
         // Очищаем имя модели от префиксов models/
-        var mdl = (if (model.isNullOrBlank()) "gemini-2.0-flash" else model).trim()
+        var mdl = (if (model.isNullOrBlank()) "gemini-3.8-flash" else model).trim()
         if (mdl.startsWith("models/")) mdl = mdl.removePrefix("models/")
         // Если была указана модель OpenRouter (google/...), берем чистый идентификатор
         if (mdl.startsWith("google/")) mdl = mdl.removePrefix("google/")

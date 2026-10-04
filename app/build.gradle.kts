@@ -140,6 +140,7 @@ dependencies {
 
     // STT (Vosk + Android SpeechRecognizer fallback)
     implementation(libs.vosk.android)
+    implementation(libs.tasks.genai)
 
     // Google Sign-In + Calendar
     implementation(libs.play.services.auth)

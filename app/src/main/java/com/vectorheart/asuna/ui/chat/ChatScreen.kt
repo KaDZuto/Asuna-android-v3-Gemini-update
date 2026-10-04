@@ -628,6 +628,12 @@ fun ChatScreen(
                             baseUrl = "http://127.0.0.1:8080/v1"
                             model = "qwen2.5-1.5b-instruct"
                         }
+                        "local-ondevice" -> {
+                            apiType = "local-ondevice"
+                            baseUrl = ""
+                            val onDev = localModelManager.getOnDeviceModels().firstOrNull()
+                            model = onDev?.filePath
+                        }
                         "anthropic" -> {
                             baseUrl = "https://api.anthropic.com/v1"
                             model = "claude-sonnet-5-5"
@@ -684,6 +690,14 @@ fun ChatScreen(
                 localModelManager = localModelManager,
                 onPickModelFile = {
                     modelPickerLauncher.launch(arrayOf("*/*", "application/octet-stream"))
+                },
+                onActivateOnDevice = {
+                    val onDev = localModelManager.getOnDeviceModels().firstOrNull()
+                    apiType = "local-ondevice"
+                    baseUrl = ""
+                    model = onDev?.filePath
+                    showLocalModelsSheet = false
+                    Toast.makeText(context, if (onDev != null) "On-Device модель: ${onDev.displayName}" else "Сначала импортируй .task модель", Toast.LENGTH_LONG).show()
                 },
                 onActivateLocalServer = {
                     apiType = "openai-compatible"

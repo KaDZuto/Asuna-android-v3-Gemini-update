@@ -27,6 +27,7 @@ playServicesAuth = "21.2.0"
 accompanistPermissions = "0.36.0"
 coil = "2.7.0"
 junit = "4.13.2"
+tasksGenai = "0.10.27"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 appcompat = "1.7.0"
@@ -98,6 +99,7 @@ androidx-camera-view = { group = "androidx.camera", name = "camera-view", versio
 
 # STT
 vosk-android = { group = "com.alphacephei", name = "vosk-android", version.ref = "vosk" }
+tasks-genai = { group = "com.google.mediapipe", name = "tasks-genai", version.ref = "tasksGenai" }
 
 # Sherpa-onnx (Whisper STT + Silero TTS) — НЕ на Maven Central.
 # Подключается через JitPack в тасках stt/tts, для базового билда выключено.

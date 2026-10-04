@@ -100,6 +100,39 @@ class LocalModelManager @Inject constructor(
         )
     )
 
+    /**
+     * Рекомендации для встроенного on-device инференса (MediaPipe GenAI, .task).
+     * Используются через OnDeviceLlmEngine — без Termux.
+     */
+    val onDeviceRecommendations: List<ModelRecommendation> = listOf(
+        ModelRecommendation(
+            title = "Gemma 3n E2B-it (.task)",
+            filename = "gemma3n-e2b-it.task",
+            sizeFormatted = "~2.9 ГБ",
+            ramUsage = "~3.5 ГБ RAM",
+            speedMi11T = "8-15 ток/сек (локально на CPU/GPU)",
+            huggingFaceUrl = "https://huggingface.co/google/gemma-3n-e2b-it-litert-lm",
+            description = "Нативная модель Google для AI Edge Gallery. Импортируй .task в Настройки → Локальные модели → On-Device."
+        ),
+        ModelRecommendation(
+            title = "Gemma 3 1B-it (.task)",
+            filename = "gemma3-1b-it-int4.task",
+            sizeFormatted = "~700 МБ",
+            ramUsage = "~1.2 ГБ RAM",
+            speedMi11T = "20-30 ток/сек (очень быстро)",
+            huggingFaceUrl = "https://huggingface.co/litert-community/Gemma3-1B-IT",
+            description = "Лёгкая и быстрая — идеально для Xiaomi Mi 11T с 8 ГБ RAM."
+        )
+    )
+
+    /** Модели, пригодные для встроенного on-device инференса (.task/.litertlm). */
+    fun getOnDeviceModels(): List<ImportedModel> =
+        getImportedModels().filter {
+            it.format == "MediaPipeTask" || it.format == "LiteRT" ||
+                it.fileName.endsWith(".task", ignoreCase = true) ||
+                it.fileName.endsWith(".litertlm", ignoreCase = true)
+        }
+
     fun getImportedModels(): List<ImportedModel> {
         return try {
             if (!modelsConfigFile.exists()) return emptyList()
@@ -147,12 +180,18 @@ class LocalModelManager @Inject constructor(
             }
         }
 
+        val detectedFormat = when {
+            displayName.endsWith(".task", ignoreCase = true) -> "MediaPipeTask"
+            displayName.endsWith(".litertlm", ignoreCase = true) -> "LiteRT"
+            else -> "GGUF"
+        }
         val model = ImportedModel(
             id = "local_${System.currentTimeMillis()}",
-            displayName = displayName.removeSuffix(".gguf"),
+            displayName = displayName.removeSuffix(".gguf").removeSuffix(".task").removeSuffix(".litertlm"),
             fileName = displayName,
             filePath = targetFile.absolutePath,
             sizeBytes = targetFile.length(),
+            format = detectedFormat,
             recommendedThreads = 4, // 4 ядра Cortex-A78 на Dimensity 1200
             recommendedContext = 2048
         )

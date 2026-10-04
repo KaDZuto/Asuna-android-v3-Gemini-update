@@ -111,6 +111,7 @@ fun LocalModelsSheetContent(
     localModelManager: LocalModelManager,
     onPickModelFile: () -> Unit,
     onActivateLocalServer: () -> Unit,
+    onActivateOnDevice: () -> Unit = {},
     onCopyText: (String) -> Unit
 ) {
     var importedModels by remember { mutableStateOf(localModelManager.getImportedModels()) }
@@ -235,6 +236,14 @@ fun LocalModelsSheetContent(
                     ) {
                         Text("Проверить")
                     }
+                }
+                Spacer(Modifier.height(6.dp))
+                Button(
+                    onClick = onActivateOnDevice,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                ) {
+                    Text("🧩 Встроить On-Device (LiteRT) и подключить к Асуне")
                 }
             }
         }

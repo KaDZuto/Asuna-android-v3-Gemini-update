@@ -2,6 +2,7 @@ package com.vectorheart.asuna.llm
 
 import android.content.Context
 import android.util.Log
+import com.vectorheart.asuna.localai.OnDeviceLlmEngine
 import com.vectorheart.asuna.memory.MemoryManager
 import com.vectorheart.asuna.pickup.PickupMode
 import com.vectorheart.asuna.tools.ToolRegistry
@@ -28,7 +29,8 @@ class LlmRepository @Inject constructor(
     @ApplicationContext private val context: Context,
     val llmClient: LlmClient,
     val toolRegistry: ToolRegistry,
-    val memoryManager: MemoryManager
+    val memoryManager: MemoryManager,
+    val onDeviceLlmEngine: OnDeviceLlmEngine
 ) {
     companion object {
         private const val TAG = "LlmRepository"
@@ -128,15 +130,32 @@ class LlmRepository @Inject constructor(
         val sysPrompt = buildSystemPrompt()
 
         Log.d(TAG, "Calling LLM: '$userText' [mode=$currentMode, provider=$apiType]")
-        val firstRaw = llmClient.callLLM(
-            userMessage = userText,
-            history = history,
-            apiKey = apiKey,
-            apiType = apiType,
-            model = model,
-            baseUrl = baseUrl,
-            systemPrompt = sysPrompt
-        )
+        val firstRaw = if (apiType.equals("local-ondevice", ignoreCase = true)) {
+            val path = model?.takeIf { it.isNotBlank() }
+                ?: throw IllegalArgumentException("Не выбрана on-device .task модель (Настройки → Локальные модели → On-Device)")
+            onDeviceLlmEngine.ensureLoaded(path)
+            val promptText = buildString {
+                append(sysPrompt)
+                append("\n\n")
+                history.takeLast(10).forEach { (role, content) ->
+                    append(if (role == "user") "Пользователь: " else "Асуна: ")
+                    append(content)
+                    append("\n")
+                }
+                append("Пользователь: $userText\nАсуна:")
+            }
+            onDeviceLlmEngine.generate(promptText)
+        } else {
+            llmClient.callLLM(
+                userMessage = userText,
+                history = history,
+                apiKey = apiKey,
+                apiType = apiType,
+                model = model,
+                baseUrl = baseUrl,
+                systemPrompt = sysPrompt
+            )
+        }
 
         val firstParsed = llmClient.parseResponse(firstRaw)
 
@@ -156,15 +175,19 @@ class LlmRepository @Inject constructor(
             }
 
             val followUpPrompt = "Результат работы инструмента ${tool.name}:\n$toolResult\n\nТеперь дай естественный ответ пользователю на русском языке с блоком <live2d> в конце."
-            val finalRaw = llmClient.callLLM(
-                userMessage = followUpPrompt,
-                history = updatedHistory,
-                apiKey = apiKey,
-                apiType = apiType,
-                model = model,
-                baseUrl = baseUrl,
-                systemPrompt = sysPrompt
-            )
+            val finalRaw = if (apiType.equals("local-ondevice", ignoreCase = true)) {
+                onDeviceLlmEngine.generate("$sysPrompt\n\n$followUpPrompt")
+            } else {
+                llmClient.callLLM(
+                    userMessage = followUpPrompt,
+                    history = updatedHistory,
+                    apiKey = apiKey,
+                    apiType = apiType,
+                    model = model,
+                    baseUrl = baseUrl,
+                    systemPrompt = sysPrompt
+                )
+            }
 
             val finalParsed = llmClient.parseResponse(finalRaw)
             return@withContext finalParsed

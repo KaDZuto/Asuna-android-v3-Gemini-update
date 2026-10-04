@@ -4,7 +4,9 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.hilt)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.google.services) apply false
 }
+
 
 import java.util.Properties
 
@@ -14,6 +16,11 @@ if (localPropertiesFile.exists()) {
     localPropertiesFile.inputStream().use { localProperties.load(it) }
 }
 val openRouterApiKey: String = localProperties.getProperty("openrouter.api.key", "")
+
+// Включаем google-services только если пользователь положил свой google-services.json
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
 
 // `org.jetbrains.kotlin.android` подтягивается автоматически AGP 9.x + Kotlin 2.0+.
 // Отдельный `kotlin-android` плагин НЕ нужен, иначе конфликт дублирующих расширений.
@@ -141,6 +148,9 @@ dependencies {
     // STT (Vosk + Android SpeechRecognizer fallback)
     implementation(libs.vosk.android)
     implementation(libs.tasks.genai)
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.firestore)
+    implementation(libs.coroutines.play.services)
 
     // Google Sign-In + Calendar
     implementation(libs.play.services.auth)

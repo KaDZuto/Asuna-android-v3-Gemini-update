@@ -380,7 +380,11 @@ fun ChatScreen(
                     baseUrl = baseUrl,
                     onToolExecuting = { toolInfo ->
                         statusMessage = "⚙️ $toolInfo"
-                    }
+                    },
+                    onPartial = if (apiType == "local-ondevice") { partial ->
+                        // Потоковая выдача on-device модели: текст появляется по мере генерации
+                        chatLog = chatLog.dropLast(1) + asunaMsg.copy(text = partial, status = "sending")
+                    } else null
                 )
 
                 applyActionToAvatar(parsed.action)
@@ -645,6 +649,7 @@ fun ChatScreen(
             SettingsSheetContent(
                 apiType = apiType,
                 onApiTypeChange = { newType ->
+                    if (newType != apiType) llmRepository.onDeviceLlmEngine.resetConversation()
                     apiType = newType
                     // Умная авто-подстановка провайдеров
                     when (newType) {
@@ -671,6 +676,7 @@ fun ChatScreen(
                             baseUrl = ""
                             val onDev = localModelManager.getOnDeviceModels().firstOrNull()
                             model = onDev?.filePath
+                            Toast.makeText(context, if (onDev != null) "On-Device: ${onDev.displayName}" else "Нет on-device моделей: скачай .task в Локальных моделях", Toast.LENGTH_LONG).show()
                         }
                         "anthropic" -> {
                             baseUrl = "https://api.anthropic.com/v1"
@@ -749,12 +755,28 @@ fun ChatScreen(
                     modelPickerLauncher.launch(arrayOf("*/*", "application/octet-stream"))
                 },
                 onActivateOnDevice = {
+                    llmRepository.onDeviceLlmEngine.resetConversation()
                     val onDev = localModelManager.getOnDeviceModels().firstOrNull()
                     apiType = "local-ondevice"
                     baseUrl = ""
                     model = onDev?.filePath
                     showLocalModelsSheet = false
                     Toast.makeText(context, if (onDev != null) "On-Device модель: ${onDev.displayName}" else "Сначала импортируй .task модель", Toast.LENGTH_LONG).show()
+                },
+                onActivateModel = { m ->
+                    llmRepository.onDeviceLlmEngine.resetConversation()
+                    if (m.format == "MediaPipeTask" || m.format == "LiteRT" || m.fileName.endsWith(".task") || m.fileName.endsWith(".litertlm")) {
+                        apiType = "local-ondevice"
+                        baseUrl = ""
+                        model = m.filePath
+                        Toast.makeText(context, "On-Device: ${m.displayName}", Toast.LENGTH_LONG).show()
+                    } else {
+                        apiType = "openai-compatible"
+                        baseUrl = "http://127.0.0.1:8080/v1"
+                        model = m.fileName.substringBeforeLast('.')
+                        Toast.makeText(context, "Termux-сервер: ${m.displayName}", Toast.LENGTH_LONG).show()
+                    }
+                    showLocalModelsSheet = false
                 },
                 onActivateLocalServer = {
                     apiType = "openai-compatible"

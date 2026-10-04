@@ -33,6 +33,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vectorheart.asuna.memory.MemoryCloudSync
 import com.vectorheart.asuna.memory.MemoryManager
 import kotlinx.coroutines.launch
 
@@ -83,6 +84,37 @@ fun MemorySheetContent(
             }) {
                 Text("Очистить")
             }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        try {
+                            val n = MemoryCloudSync.pushMemories(context, memoryManager.loadMemories())
+                            Toast.makeText(context, "В Firebase выгружено: $n", Toast.LENGTH_LONG).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(context, e.message ?: "Ошибка Firebase", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            ) { Text("☁️ В Firebase") }
+            OutlinedButton(
+                onClick = {
+                    coroutineScope.launch {
+                        try {
+                            val remote = MemoryCloudSync.pullMemories(context)
+                            memoryManager.mergeMemories(remote)
+                            memories = memoryManager.loadMemories()
+                            Toast.makeText(context, "Из Firebase загружено: ${remote.size}", Toast.LENGTH_LONG).show()
+                        } catch (e: Exception) {
+                            Toast.makeText(context, e.message ?: "Ошибка Firebase", Toast.LENGTH_LONG).show()
+                        }
+                    }
+                }
+            ) { Text("☁️ Из Firebase") }
         }
 
         Spacer(Modifier.height(10.dp))

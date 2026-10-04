@@ -136,26 +136,22 @@ class LlmRepository @Inject constructor(
         apiType: String,
         model: String?,
         baseUrl: String?,
-        onToolExecuting: ((String) -> Unit)? = null
+        onToolExecuting: ((String) -> Unit)? = null,
+        onPartial: ((String) -> Unit)? = null
     ): LlmClient.ParseResult = withContext(Dispatchers.IO) {
         val sysPrompt = buildSystemPrompt()
 
         Log.d(TAG, "Calling LLM: '$userText' [mode=$currentMode, provider=$apiType]")
-        val firstRaw = if (apiType.equals("local-ondevice", ignoreCase = true)) {
+        val isOnDevice = apiType.equals("local-ondevice", ignoreCase = true)
+        val firstRaw = if (isOnDevice) {
             val path = model?.takeIf { it.isNotBlank() }
                 ?: throw IllegalArgumentException("Не выбрана on-device .task модель (Настройки → Локальные модели → On-Device)")
-            onDeviceLlmEngine.ensureLoaded(path)
-            val promptText = buildString {
-                append(sysPrompt)
-                append("\n\n")
-                history.takeLast(10).forEach { (role, content) ->
-                    append(if (role == "user") "Пользователь: " else "Асуна: ")
-                    append(content)
-                    append("\n")
-                }
-                append("Пользователь: $userText\nАсуна:")
-            }
-            onDeviceLlmEngine.generate(promptText)
+            onDeviceLlmEngine.ensureLoaded(path, maxContextTokens = onDeviceContextLimit(sysPrompt))
+            onDeviceLlmEngine.chat(
+                userText = userText,
+                systemPrompt = sysPrompt,
+                onPartial = onPartial
+            )
         } else {
             llmClient.callLLM(
                 userMessage = userText,
@@ -186,8 +182,12 @@ class LlmRepository @Inject constructor(
             }
 
             val followUpPrompt = "Результат работы инструмента ${tool.name}:\n$toolResult\n\nТеперь дай естественный ответ пользователю на русском языке с блоком <live2d> в конце."
-            val finalRaw = if (apiType.equals("local-ondevice", ignoreCase = true)) {
-                onDeviceLlmEngine.generate("$sysPrompt\n\n$followUpPrompt")
+            val finalRaw = if (isOnDevice) {
+                onDeviceLlmEngine.chat(
+                    userText = followUpPrompt,
+                    systemPrompt = "",
+                    onPartial = onPartial
+                )
             } else {
                 llmClient.callLLM(
                     userMessage = followUpPrompt,
@@ -217,6 +217,32 @@ class LlmRepository @Inject constructor(
         model: String?,
         baseUrl: String?
     ): String {
+        // On-device: суммарируем той же локальной моделью, чтобы не требовать облако
+        if (apiType.equals("local-ondevice", ignoreCase = true)) {
+            val path = model?.takeIf { it.isNotBlank() }
+                ?: return memoryManager.summarizeLocally(history, "On-device модель не выбрана")
+            return try {
+                onDeviceLlmEngine.ensureLoaded(path, maxContextTokens = onDeviceContextLimit(""))
+                val lastLines = history.takeLast(14).joinToString("\n") { (role, text) ->
+                    if (role == "user") "Пользователь: ${text.take(400)}" else "Асуна: ${text.take(400)}"
+                }
+                val prompt = """
+                    Сожми диалог в 3-5 предложений о том, что важно запомнить: факты о пользователе,
+                    его вкусы, планы, важные события, как он предпочитает общаться.
+                    Без воды, без обращения к пользователю, только факты от третьего лица, на русском.
+                    Только текст памяти, без тегов и без markdown-заголовков.
+
+                    Диалог:
+                    $lastLines
+                """.trimIndent()
+                val raw = onDeviceLlmEngine.chat(prompt, "")
+                memoryManager.saveSummaryRaw(raw)
+            } catch (e: Exception) {
+                Log.e(TAG, "On-device summarize failed: ${e.message}", e)
+                memoryManager.summarizeLocally(history, e.message ?: "Ошибка on-device")
+            }
+        }
+
         return memoryManager.summarizeAndSave(
             history = history,
             llmClient = llmClient,
@@ -225,5 +251,11 @@ class LlmRepository @Inject constructor(
             model = model,
             baseUrl = baseUrl
         )
+    }
+
+    /** Контекст on-device модели: системный промпт + запас на историю. */
+    private fun onDeviceContextLimit(sysPrompt: String): Int {
+        val sysTokens = if (sysPrompt.isBlank()) 0 else onDeviceLlmEngine.countTokens(sysPrompt)
+        return (maxOf(1024, sysTokens + 1024)).coerceAtMost(4096)
     }
 }

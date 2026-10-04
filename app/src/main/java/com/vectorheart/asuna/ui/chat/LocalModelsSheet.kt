@@ -53,6 +53,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -112,10 +113,12 @@ fun LocalModelsSheetContent(
     onPickModelFile: () -> Unit,
     onActivateLocalServer: () -> Unit,
     onActivateOnDevice: () -> Unit = {},
+    onActivateModel: (com.vectorheart.asuna.localai.LocalModelManager.ImportedModel) -> Unit = {},
     onCopyText: (String) -> Unit
 ) {
     var importedModels by remember { mutableStateOf(localModelManager.getImportedModels()) }
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
     var isServerOnline by remember { mutableStateOf<Boolean?>(null) }
 
     LaunchedEffect(Unit) {
@@ -183,7 +186,11 @@ fun LocalModelsSheetContent(
                         ) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(m.displayName, fontWeight = FontWeight.Bold, fontSize = 14.sp)
-                                Text("${m.sizeBytes / (1024 * 1024)} МБ • 4 потока CPU", fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
+                                Text("${m.sizeBytes / (1024 * 1024)} МБ • 4 потока • ${m.format}", fontSize = 12.sp, color = MaterialTheme.colorScheme.outline)
+                                Spacer(Modifier.height(4.dp))
+                                OutlinedButton(onClick = { onActivateModel(m) }) {
+                                    Text(if (m.format == "MediaPipeTask" || m.format == "LiteRT") "🧩 В чате (On-Device)" else "📱 В чате (Termux)", fontSize = 11.sp)
+                                }
                             }
                             IconButton(onClick = {
                                 localModelManager.removeModel(m.id)
@@ -244,6 +251,113 @@ fun LocalModelsSheetContent(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
                 ) {
                     Text("🧩 Встроить On-Device (LiteRT) и подключить к Асуне")
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+        Text("⬇ Скачать модель прямо из приложения", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Spacer(Modifier.height(2.dp))
+        val freeBytes = localModelManager.freeDiskBytes()
+        if (freeBytes > 0) {
+            Text(
+                "Свободно на телефоне: ${freeBytes / 1024 / 1024} МБ",
+                fontSize = 11.sp,
+                color = MaterialTheme.colorScheme.outline
+            )
+        }
+
+        // Токен HuggingFace — нужен только для gated-моделей (Gemma)
+        var hfToken by remember { mutableStateOf(localModelManager.hfToken) }
+        OutlinedTextField(
+            value = hfToken,
+            onValueChange = { hfToken = it },
+            label = { Text("Токен HuggingFace (необязательно)", fontSize = 12.sp) },
+            singleLine = true,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 6.dp),
+            textStyle = MaterialTheme.typography.bodySmall
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            modifier = Modifier.padding(top = 4.dp)
+        ) {
+            OutlinedButton(onClick = {
+                localModelManager.hfToken = hfToken
+                Toast.makeText(context, "Токен сохранён", Toast.LENGTH_SHORT).show()
+            }) { Text("Сохранить токен", fontSize = 12.sp) }
+            OutlinedButton(onClick = {
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://huggingface.co/settings/tokens"))
+                context.startActivity(intent)
+            }) { Text("Как получить", fontSize = 12.sp) }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        var downloading by remember { mutableStateOf<String?>(null) }
+        var downloadProgress by remember { mutableStateOf<Int?>(null) }
+        localModelManager.onDeviceRecommendations.forEach { rec ->
+            val already = localModelManager.downloadedModelBytes(rec)
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                modifier = Modifier.fillMaxWidth().padding(vertical = 3.dp)
+            ) {
+                Column(Modifier.padding(10.dp)) {
+                    Text(rec.title, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                    Text("${rec.sizeFormatted} • ${rec.ramUsage} • ${rec.speedMi11T}", fontSize = 11.sp, color = MaterialTheme.colorScheme.outline)
+                    Text(rec.description, fontSize = 11.sp, color = MaterialTheme.colorScheme.outline)
+                    if (already != null) {
+                        Text("✅ Уже скачано (${already / 1024 / 1024} МБ)", fontSize = 11.sp, color = MaterialTheme.colorScheme.primary)
+                    }
+                    if (rec.requiresHfToken && hfToken.isBlank()) {
+                        Text("⚠ Нужен токен HuggingFace", fontSize = 11.sp, color = MaterialTheme.colorScheme.error)
+                    }
+                    val isDownloading = downloading == rec.filename
+                    if (isDownloading) {
+                        Spacer(Modifier.height(6.dp))
+                        LinearProgressIndicator(
+                            progress = { (downloadProgress ?: 0) / 100f },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        Text("Скачивание… ${downloadProgress ?: 0}%", fontSize = 11.sp)
+                    }
+                    Spacer(Modifier.height(6.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Button(
+                            enabled = downloading == null && rec.downloadUrl.isNotBlank(),
+                            onClick = {
+                                downloading = rec.filename
+                                downloadProgress = 0
+                                coroutineScope.launch {
+                                    try {
+                                        val m = localModelManager.downloadModel(rec) { p -> downloadProgress = p }
+                                        importedModels = localModelManager.getImportedModels()
+                                        Toast.makeText(context, "Скачано: ${m.displayName}. Подключаю к Асуне…", Toast.LENGTH_LONG).show()
+                                        onActivateModel(m)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_LONG).show()
+                                    } finally {
+                                        downloading = null
+                                        downloadProgress = null
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(
+                                when {
+                                    isDownloading -> "Скачиваем…"
+                                    already != null -> "↻ Проверить"
+                                    rec.downloadUrl.isNotBlank() -> "⬇ Скачать"
+                                    else -> "🔗 Открыть HF"
+                                },
+                                fontSize = 12.sp
+                            )
+                        }
+                        OutlinedButton(onClick = {
+                            val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(rec.huggingFaceUrl))
+                            context.startActivity(intent)
+                        }) { Text("Страница", fontSize = 12.sp) }
+                    }
                 }
             }
         }

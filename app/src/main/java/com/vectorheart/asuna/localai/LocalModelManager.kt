@@ -46,7 +46,9 @@ class LocalModelManager @Inject constructor(
         val ramUsage: String,
         val speedMi11T: String,
         val huggingFaceUrl: String,
-        val description: String
+        val description: String,
+        val downloadUrl: String = "",
+        val requiresHfToken: Boolean = false
     )
 
     private val json = Json {
@@ -106,22 +108,65 @@ class LocalModelManager @Inject constructor(
      */
     val onDeviceRecommendations: List<ModelRecommendation> = listOf(
         ModelRecommendation(
-            title = "Gemma 3n E2B-it (.task)",
-            filename = "gemma3n-e2b-it.task",
-            sizeFormatted = "~2.9 ГБ",
-            ramUsage = "~3.5 ГБ RAM",
-            speedMi11T = "8-15 ток/сек (локально на CPU/GPU)",
-            huggingFaceUrl = "https://huggingface.co/google/gemma-3n-e2b-it-litert-lm",
-            description = "Нативная модель Google для AI Edge Gallery. Импортируй .task в Настройки → Локальные модели → On-Device."
+            title = "Qwen 2.5 1.5B Instruct — q8, контекст 4096",
+            filename = "Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv4096.task",
+            sizeFormatted = "1.60 ГБ",
+            ramUsage = "~2.4 ГБ RAM",
+            speedMi11T = "12-20 ток/сек",
+            huggingFaceUrl = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct",
+            description = "Лучший выбор для Асуны: отлично знает русский, контекста хватает на длинную личность + память. Без логина.",
+            downloadUrl = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv4096.task"
         ),
         ModelRecommendation(
-            title = "Gemma 3 1B-it (.task)",
+            title = "Qwen 2.5 1.5B Instruct — q8, контекст 1280",
+            filename = "Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
+            sizeFormatted = "1.60 ГБ",
+            ramUsage = "~2.2 ГБ RAM",
+            speedMi11T = "15-22 ток/сек",
+            huggingFaceUrl = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct",
+            description = "То же качество, но быстрее и экономнее по RAM. Короткая память беседы.",
+            downloadUrl = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task"
+        ),
+        ModelRecommendation(
+            title = "Qwen 2.5 0.5B Instruct — q8 (самая лёгкая)",
+            filename = "Qwen2.5-0.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
+            sizeFormatted = "0.55 ГБ",
+            ramUsage = "~1.1 ГБ RAM",
+            speedMi11T = "25-35 ток/сек",
+            huggingFaceUrl = "https://huggingface.co/litert-community/Qwen2.5-0.5B-Instruct",
+            description = "Максимально быстрая и тёплая — для слабых батареек. Русский понимает, но отвечает проще.",
+            downloadUrl = "https://huggingface.co/litert-community/Qwen2.5-0.5B-Instruct/resolve/main/Qwen2.5-0.5B-Instruct_multi-prefill-seq_q8_ekv1280.task"
+        ),
+        ModelRecommendation(
+            title = "Phi-4-mini-instruct — q8, контекст 4096",
+            filename = "Phi-4-mini-instruct_multi-prefill-seq_q8_ekv4096.task",
+            sizeFormatted = "3.91 ГБ",
+            ramUsage = "~4.5 ГБ RAM",
+            speedMi11T = "6-11 ток/сек",
+            huggingFaceUrl = "https://huggingface.co/litert-community/Phi-4-mini-instruct",
+            description = "Самая умная из доступных без логина, но заметно медленнее и нужно 4+ ГБ свободной RAM.",
+            downloadUrl = "https://huggingface.co/litert-community/Phi-4-mini-instruct/resolve/main/Phi-4-mini-instruct_multi-prefill-seq_q8_ekv4096.task"
+        ),
+        ModelRecommendation(
+            title = "Gemma 3 1B-it — int4 (нужен токен HuggingFace)",
             filename = "gemma3-1b-it-int4.task",
-            sizeFormatted = "~700 МБ",
+            sizeFormatted = "0.56 ГБ",
             ramUsage = "~1.2 ГБ RAM",
-            speedMi11T = "20-30 ток/сек (очень быстро)",
+            speedMi11T = "20-30 ток/сек",
             huggingFaceUrl = "https://huggingface.co/litert-community/Gemma3-1B-IT",
-            description = "Лёгкая и быстрая — идеально для Xiaomi Mi 11T с 8 ГБ RAM."
+            description = "Лёгкая и быстрая. Gemma — gated: вставь токен HuggingFace (бесплатно) в поле ниже.",
+            downloadUrl = "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4.task",
+            requiresHfToken = true
+        ),
+        ModelRecommendation(
+            title = "Gemma 3n E2B-it (открыть в AI Edge Gallery)",
+            filename = "gemma-3n-e2b-it.task",
+            sizeFormatted = "~2.9 ГБ",
+            ramUsage = "~3.5 ГБ RAM",
+            speedMi11T = "8-15 ток/сек",
+            huggingFaceUrl = "https://huggingface.co/litert-community/gemma-3n-E2B-it-litert-lm",
+            description = "Нативная модель Google для галереи. Прямой ссылки нет — скачай через google-ai-edge/gallery.",
+            downloadUrl = ""
         )
     )
 
@@ -202,6 +247,135 @@ class LocalModelManager @Inject constructor(
         saveImportedModels(list)
 
         Log.d(TAG, "Imported local model: ${model.displayName} (${model.sizeBytes} bytes)")
+        model
+    }
+
+    /** Токен HuggingFace для скачивания gated-моделей (Gemma). */
+    var hfToken: String
+        get() = context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE).getString("hf_token", "") ?: ""
+        set(value) {
+            context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE).edit().putString("hf_token", value.trim()).apply()
+        }
+
+    /** Свободное место на внутреннем диске, байт. */
+    fun freeDiskBytes(): Long = try {
+        val stat = android.os.StatFs(context.filesDir.absolutePath)
+        stat.availableBytes
+    } catch (_: Exception) { -1L }
+
+    /** Размер файла модели, если она уже скачана, иначе null. */
+    fun downloadedModelBytes(rec: ModelRecommendation): Long? {
+        val f = File(File(context.filesDir, "local_models"), rec.filename)
+        return if (f.exists() && f.length() > 0) f.length() else null
+    }
+
+    /**
+     * Скачивает модель по прямой ссылке в filesDir/local_models и регистрирует её,
+     * как при импорте через SAF (подход из google-ai-edge/gallery).
+     * Поддерживает докачку (Range), прогресс и токен HF для gated-моделей.
+     */
+    suspend fun downloadModel(
+        rec: ModelRecommendation,
+        onProgress: ((Int) -> Unit)? = null
+    ): ImportedModel = withContext(Dispatchers.IO) {
+        val url = rec.downloadUrl
+        if (url.isBlank()) throw RuntimeException("Нет прямой ссылки — открой страницу HuggingFace вручную.")
+
+        val modelsDir = File(context.filesDir, "local_models").apply { mkdirs() }
+        val targetFile = File(modelsDir, rec.filename)
+        val partFile = File(modelsDir, "${rec.filename}.part")
+
+        // Уже скачана?
+        if (targetFile.exists() && targetFile.length() > 1024 * 1024) {
+            Log.d(TAG, "Model already downloaded: ${rec.filename}")
+        } else {
+            val already = if (partFile.exists()) partFile.length() else 0L
+            val builder = Request.Builder().url(url).get()
+            val token = hfToken
+            if (token.isNotBlank()) builder.header("Authorization", "Bearer $token")
+            if (already > 0) builder.header("Range", "bytes=$already-")
+
+            httpClient.newCall(builder.build()).execute().use { resp ->
+                val code = resp.code
+                if (code == 401 || code == 403) {
+                    throw RuntimeException("HuggingFace не пускает: нужна авторизация. Вставь токен HF в поле выше (Model Scope / gated-модель).")
+                }
+                if (code == 416) {
+                    // Файл уже докачан полностью
+                    if (partFile.exists()) partFile.renameTo(targetFile)
+                } else if (!resp.isSuccessful) {
+                    throw RuntimeException("Ошибка загрузки HTTP $code")
+                } else {
+                    val body = resp.body ?: throw RuntimeException("Пустой ответ сервера")
+                    val total = resp.header("Content-Range")?.substringAfterLast('/')?.toLongOrNull() ?: body.contentLength()
+                    val fullSize = if (total > 0) (if (already > 0) already + total else total) else -1L
+
+                    // Проверка свободного места перед записью
+                    if (fullSize > 0) {
+                        val free = freeDiskBytes()
+                        if (free in 0..(fullSize / 2)) {
+                            throw RuntimeException("Мало места: нужно ~${fullSize / 1024 / 1024} МБ, свободно ${free / 1024 / 1024} МБ")
+                        }
+                    }
+
+                    body.byteStream().use { input ->
+                        val out = if (already > 0 && code == 206) {
+                            java.io.FileOutputStream(partFile, true)
+                        } else {
+                            java.io.FileOutputStream(partFile, false)
+                        }
+                        out.use { output ->
+                            val buffer = ByteArray(128 * 1024)
+                            var downloaded = already
+                            var lastPct = -1
+                            while (true) {
+                                val read = input.read(buffer)
+                                if (read < 0) break
+                                output.write(buffer, 0, read)
+                                downloaded += read
+                                if (fullSize > 0) {
+                                    val pct = ((downloaded * 100) / fullSize).toInt().coerceIn(0, 100)
+                                    // Прогресс обновляем на главном потоке и не чаще 1% — иначе Compose зальётся
+                                    if (pct != lastPct) {
+                                        lastPct = pct
+                                        withContext(Dispatchers.Main) { onProgress?.invoke(pct) }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (!partFile.renameTo(targetFile)) {
+                        partFile.copyTo(targetFile, overwrite = true)
+                        partFile.delete()
+                    }
+                    onProgress?.invoke(100)
+                }
+            }
+        }
+
+        if (!targetFile.exists() || targetFile.length() < 1024 * 1024) {
+            throw RuntimeException("Файл модели не загрузился (повреждённая загрузка) — попробуй ещё раз")
+        }
+
+        val format = when {
+            rec.filename.endsWith(".task", ignoreCase = true) -> "MediaPipeTask"
+            rec.filename.endsWith(".litertlm", ignoreCase = true) -> "LiteRT"
+            else -> "GGUF"
+        }
+        val model = ImportedModel(
+            id = "local_${rec.filename}",
+            displayName = rec.filename.substringBeforeLast('.'),
+            fileName = rec.filename,
+            filePath = targetFile.absolutePath,
+            sizeBytes = targetFile.length(),
+            format = format,
+            recommendedThreads = 4,
+            recommendedContext = if (rec.filename.contains("ekv4096")) 4096 else 1280
+        )
+        val list = getImportedModels().toMutableList()
+        list.removeAll { it.fileName == rec.filename }
+        list.add(model)
+        saveImportedModels(list)
         model
     }
 

@@ -125,6 +125,53 @@ class MemoryManager @Inject constructor(
         cleanSummary
     }
 
+    /** Сохраняет готовый текст саммари (например, сгенерированный on-device моделью). */
+    fun saveSummaryRaw(raw: String): String {
+        val clean = raw
+            .replace(Regex("""<live2d>[\s\S]*?</live2d>"""), "")
+            .replace(Regex("""<tool>[\s\S]*?</tool>"""), "")
+            .replace(Regex("""<think>[\s\S]*?</think>"""), "")
+            .trim()
+        if (clean.isBlank()) return "Пустое саммари, не сохранила."
+
+        val dateRu = SimpleDateFormat("d MMMM yyyy, HH:mm", Locale("ru")).format(Date())
+        val entry = MemoryEntry(dateRu = dateRu, summary = clean)
+        saveMemories((loadMemories() + entry).takeLast(50))
+        Log.d(TAG, "Saved summary (raw): ${clean.take(120)}")
+        return clean
+    }
+
+    /**
+     * Локальное саммари без обращения к облаку: последние реплики превращаются
+     * в память простым текстом. Используется, если on-device модель недоступна.
+     */
+    fun summarizeLocally(history: List<Pair<String, String>>, note: String? = null): String {
+        if (history.isEmpty()) return "История пуста, нечего сохранять."
+        val userLines = history.filter { it.first == "user" }.takeLast(6)
+        val asunaLines = history.filter { it.first != "user" }.takeLast(4)
+        val text = buildString {
+            append("Сессия на телефоне.")
+            if (userLines.isNotEmpty()) {
+                append(" Обсуждали: ")
+                append(userLines.joinToString("; ") { it.second.replace(Regex("\\s+"), " ").take(120) })
+                append(".")
+            }
+            if (asunaLines.isNotEmpty()) {
+                append(" Асуна отвечала тепло и по-русски, поддерживала диалог.")
+            }
+            if (!note.isNullOrBlank()) append(" (${note.take(80)})")
+        }
+        return saveSummaryRaw(text)
+    }
+
+    fun mergeMemories(entries: List<MemoryEntry>) {
+        val merged = (loadMemories() + entries)
+            .distinctBy { "${it.dateRu}|${it.summary}" }
+            .sortedBy { it.timestamp }
+            .takeLast(50)
+        saveMemories(merged)
+    }
+
     fun clearMemories() {
         if (memoryFile.exists()) {
             memoryFile.delete()

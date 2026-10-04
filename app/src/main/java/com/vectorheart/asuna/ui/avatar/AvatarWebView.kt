@@ -138,6 +138,9 @@ fun AvatarWebView(
                 // они идут наверх к Compose overlay-кнопкам.
                 setOnTouchListener(TouchPassthroughListener(this, bottomBarHeightPx))
 
+                // Прозрачный фон WebView — чтобы пользовательский фон чата был виден
+                setBackgroundColor(android.graphics.Color.TRANSPARENT)
+
                 val assetLoader = WebViewAssetLoader.Builder()
                     .addPathHandler("/assets/", WebViewAssetLoader.AssetsPathHandler(context))
                     .build()

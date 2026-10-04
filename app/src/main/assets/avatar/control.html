@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' file: data: 'unsafe-inline' 'unsafe-eval'; script-src 'self' file: 'unsafe-inline' 'unsafe-eval'; img-src 'self' file: data:; connect-src 'self' file: https: http: ws:; media-src 'self' file: data: blob:;" />
+<title>Asuna VectorHeart — панель управления</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body class="control-body">
+
+  <div id="controlRoot">
+    <header id="dockHeader">
+      <div class="brand">
+        <span class="brand-mark">
+          <svg viewBox="0 0 32 32" fill="currentColor">
+            <path d="M16 28 3 17.2C-0.3 14.3 0.6 8.7 5.4 7.1 9 5.9 12.8 7.3 16 12 19.2 7.3 23 5.9 26.6 7.1 31.4 8.7 32.3 14.3 29 17.2Z"/>
+          </svg>
+        </span>
+        <div class="brand-text">
+          <strong>ASUNA</strong>
+          <em>VECTORHEART · панель управления</em>
+        </div>
+      </div>
+      <div class="sao-header-actions">
+        <button onclick="window.vh.openSAOPlayer()" class="sao-icon-btn" title="Открыть плеер SAO"></button>
+      </div>
+    </header>
+
+    <nav id="tabs">
+      <button class="tab active" data-tab="chat">Чат</button>
+      <button class="tab" data-tab="calendar">Календарь</button>
+      <button class="tab" data-tab="memory">Память</button>
+      <button class="tab" data-tab="models">Модели</button>
+      <button class="tab" data-tab="mood">Эмоции</button>
+      <button class="tab" data-tab="settings">Настройки</button>
+    </nav>
+
+    <div class="panels">
+      <input type="file" id="imgInput" style="display:none" accept="image/*" />
+
+      <!-- CHAT: текст + голос -->
+      <div class="panel active" data-panel="chat">
+        <div id="pickupBanner" class="pickup-banner" style="display:none">
+          <div class="pickup-banner-title">РЕЖИМ ЗНАКОМСТВ · без памяти</div>
+          <div id="pickupScenarioText" class="pickup-banner-scenario"></div>
+          <div class="grid grid-2">
+            <button id="btnPickupReroll" class="btn-ghost">Новый сценарий</button>
+            <button id="btnPickupEnd" class="btn-ghost btn-danger-ghost">Завершить</button>
+          </div>
+        </div>
+        <div id="chatLog" class="chat-log">
+          <div class="msg msg-a"><span class="who">Asuna</span>Привет! Настрой API-ключ во вкладке «Настройки» — и можем говорить голосом или текстом.</div>
+        </div>
+
+        <div class="voice-row">
+          <select id="micSelect" title="Микрофон"></select>
+          <button id="btnDialogue" class="btn-record" title="Включить голосовой режим — говори когда угодно, отправка автоматическая"><span class="rec-icon"></span><span class="rec-label">Голос выкл</span></button>
+          <span id="ttsEqualizer" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></span>
+          <span id="recStatus" class="rec-status"></span>
+        </div>
+
+        <div class="chat-row">
+          <input id="chatInput" type="text" placeholder="…или напиши текстом" />
+          <button id="btnImg" class="btn-ghost" title="Прикрепить изображение">🖼️</button>
+          <button id="chatSend">→</button>
+        </div>
+
+        <div class="sleep-row">
+          <button id="btnSleepNow" class="btn-ghost">Режим сна (сохранить память сейчас)</button>
+          <span id="memCount" class="hint"></span>
+        </div>
+        <div class="sleep-row" style="margin-top: 6px;">
+          <button onclick="window.vh.openPlayerWindow()" class="btn-ghost" style="font-size:14px;"> Открыть плеер</button>
+        </div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div class="panel" data-panel="calendar">
+        <div class="section-title">Новое событие</div>
+        <div class="cal-form">
+          <input id="calTitle" type="text" placeholder="Название…" />
+          <div class="cal-form-row">
+            <input id="calDate" type="date" />
+            <input id="calTime" type="time" />
+          </div>
+          <input id="calNotes" type="text" placeholder="Заметка (необязательно)…" />
+          <button id="calAddBtn" class="btn-primary">Добавить</button>
+        </div>
+        <div class="section-title">Ближайшие события</div>
+        <div id="calList" class="cal-list"></div>
+        <div class="hint">Асуна тоже видит и может пополнять этот календарь через инструменты calendar_add / calendar_list — расскажи ей о планах голосом или текстом.</div>
+      </div>
+
+      <!-- MEMORY -->
+      <div class="panel" data-panel="memory">
+        <div class="section-title">Долгосрочная память</div>
+        <div id="memList" class="cal-list"></div>
+        <div class="hint">Здесь хранятся краткие итоги наших прошлых бесед.</div>
+      </div>
+
+      <!-- MODELS -->
+      <div class="panel" data-panel="models">
+        <input id="modelSearch" type="text" placeholder="Поиск по номеру модели…" />
+        <div id="modelGrid" class="grid"></div>
+      </div>
+
+      <!-- MOOD -->
+      <div class="panel" data-panel="mood">
+        <div class="section-title">Выражения лица</div>
+        <div id="expGrid" class="grid grid-2"></div>
+        <div class="section-title">Анимации</div>
+        <div id="mtnList" class="list"></div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div class="panel" data-panel="settings">
+        <div class="section-title">LLM / Гемма (текст + голос)</div>
+        <label class="field">
+          <span>Провайдер</span>
+          <select id="setApiType">
+            <option value="gemini">Gemini / Gemma (понимает голос напрямую)</option>
+            <option value="anthropic">Anthropic (Claude, только текст)</option>
+            <option value="openai">OpenAI</option>
+            <option value="openai-compatible">OpenAI-совместимый (Ollama / LM Studio / локальная Gemma…)</option>
+          </select>
+        </label>
+        <label class="field">
+          <span>API-ключ</span>
+          <input id="setApiKey" type="password" placeholder="…" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Модель</span>
+          <input id="setModel" type="text" placeholder="gemma-3-27b-it" />
+        </label>
+        <label class="field" id="baseUrlField">
+          <span>Base URL (для локального сервера)</span>
+          <input id="setBaseUrl" type="text" placeholder="http://127.0.0.1:11434/v1/chat/completions" />
+        </label>
+        <div class="hint" id="baseUrlHint">Обязательно с <b>http://</b> в начале. Для локальной Ollama (OpenAI-совместимый режим) — полный адрес вместе с путём: <code>http://127.0.0.1:11434/v1/chat/completions</code>. Поле «Адрес Ollama» ниже — только для автозапуска, для самого чата используется это поле.</div>
+        <button id="setSave" class="btn-primary">Сохранить</button>
+
+        <div class="section-title">Голос (Silero TTS, voice: baya)</div>
+        <label class="field">
+          <span>Адрес TTS-сервера</span>
+          <input id="setTtsUrl" type="text" placeholder="http://127.0.0.1:8009" />
+        </label>
+        <label class="field">
+          <span>Диктор</span>
+          <input id="setTtsSpeaker" type="text" placeholder="baya" />
+        </label>
+        <label class="field">
+          <span>Чувствительность VAD: <b id="vadVal">0.03</b></span>
+          <input id="setVadThreshold" type="range" min="0.01" max="0.2" step="0.01" value="0.03" />
+        </label>
+        <label class="field">
+          <span>Пауза для конца фразы (VAD): <b id="vadSilenceVal">900</b> мс</span>
+          <input id="setVadSilence" type="range" min="400" max="2000" step="100" value="900" />
+        </label>
+        <div class="hint">Чем меньше «пауза для конца фразы» — тем быстрее Асуна отвечает, но выше риск, что она перебьёт тебя на естественной паузе в речи. 700-1000мс обычно комфортно.</div>
+        <label class="toggle-row">
+          <span>Озвучивать ответы автоматически</span>
+          <input id="toggleAutoSpeak" type="checkbox" />
+        </label>
+        <label class="toggle-row">
+          <span>Можно перебивать Асуну голосом (barge-in)</span>
+          <input id="toggleBargeIn" type="checkbox" />
+        </label>
+        <div class="hint">Экспериментально: пока она говорит, VAD слушает с повышенным порогом и, если ты заговоришь достаточно уверенно, сразу обрывает её ответ и начинает записывать тебя. Микрофон без аппаратного эхоподавления может иногда путать её же голос из динамиков со своим — если ловишь ложные срабатывания, выключи и слушай в наушниках.</div>
+        <button id="btnTestTts" class="btn-ghost">Проверить голос</button>
+
+        <div class="section-title">Окно-питомец</div>
+        <label class="toggle-row">
+          <span>Поверх всех окон</span>
+          <input id="toggleAOT" type="checkbox" />
+        </label>
+        <label class="field">
+          <span>Масштаб модели: <b id="scaleVal">100%</b></span>
+          <input id="scaleRange" type="range" min="40" max="180" value="100" />
+        </label>
+        <button id="btnResetPos" class="btn-ghost">Сбросить позицию окна питомца</button>
+
+        <div class="section-title">Долгосрочная память</div>
+        <div class="hint">Сохранённых сессий: <span id="memCount2">0</span></div>
+        <button id="btnClearMemory" class="btn-ghost btn-danger-ghost">Очистить долгосрочную память</button>
+
+        <div class="section-title">Поиск в интернете и инициатива</div>
+        <label class="field">
+          <span>Brave Search API-ключ (бесплатный, для web_search)</span>
+          <input id="setBraveKey" type="password" placeholder="…" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Как часто Асуна сама предлагает идеи</span>
+          <select id="setProactivity">
+            <option value="asked">Только когда сама попросишь</option>
+            <option value="occasional">Изредка, к месту в разговоре</option>
+            <option value="never">Не проявлять инициативу</option>
+          </select>
+        </label>
+        <button id="setToolsSave" class="btn-primary">Сохранить</button>
+
+        <div class="section-title">Контент и поведение</div>
+        <label class="field">
+          <span>Режим личности</span>
+          <select id="setPersonality">
+            <option value="standard">Стандартный</option>
+            <option value="unsafe">Раскрепощённый (NSFW)</option>
+          </select>
+        </label>
+        <button id="setPersonalitySave" class="btn-primary">Сохранить</button>
+        <div class="hint">В раскрепощённом режиме Асуна становится более эмоциональной и откровенной.</div>
+
+        <div class="section-title">Живость (small talk)</div>
+        <div class="hint">Асуна изредка заговаривает сама — случайная мысль, вопрос, шутка — без всякого повода с твоей стороны. Откладывается, если вы уже активно общаетесь.</div>
+        <label class="toggle-row">
+          <span>Асуна иногда заговаривает сама</span>
+          <input id="toggleSmalltalk" type="checkbox" />
+        </label>
+        <label class="field">
+          <span>Как часто</span>
+          <select id="setSmalltalkFreq">
+            <option value="rare">Редко</option>
+            <option value="medium">Средне</option>
+            <option value="often">Часто</option>
+          </select>
+        </label>
+        <button id="setSmalltalkSave" class="btn-primary">Сохранить</button>
+
+        <div class="section-title">Google Calendar</div>
+        <div class="hint" id="gcalStatusHint">Не подключён — используется локальный календарь.</div>
+        <div class="hint">
+          Нужны свои OAuth-креденшлы (бесплатно, 5 минут): создай проект в
+          <a id="gcalConsoleLink">Google Cloud Console</a>, включи Google Calendar API,
+          создай OAuth Client ID типа «Desktop app» и вставь Client ID/Secret сюда.
+        </div>
+        <label class="field">
+          <span>Client ID</span>
+          <input id="setGcalClientId" type="text" placeholder="…apps.googleusercontent.com" autocomplete="off" />
+        </label>
+        <label class="field">
+          <span>Client Secret</span>
+          <input id="setGcalClientSecret" type="password" placeholder="…" autocomplete="off" />
+        </label>
+        <div class="grid grid-2">
+          <button id="btnGcalConnect" class="btn-primary">Подключить</button>
+          <button id="btnGcalDisconnect" class="btn-ghost btn-danger-ghost">Отключить</button>
+        </div>
+
+        <div class="section-title">Робот (в разработке)</div>
+        <div class="hint">Место под будущее подключение физического робота — сейчас неактивно.</div>
+        <label class="toggle-row">
+          <span>Подключить робота</span>
+          <input id="toggleRobot" type="checkbox" disabled />
+        </label>
+
+        <div class="section-title">Режим наблюдения (скриншот раз в N сек)</div>
+        <div class="hint">Асуна будет видеть маленький снимок твоего экрана и изредка комментировать, если там что-то интересное. Ничего не сохраняется на диск. Выключено по умолчанию.</div>
+        <label class="toggle-row">
+          <span>Включить наблюдение за экраном</span>
+          <input id="toggleScreenwatch" type="checkbox" />
+        </label>
+        <label class="field">
+          <span>Интервал проверки (сек)</span>
+          <input id="setScreenInterval" type="number" min="5" max="120" value="15" />
+        </label>
+        <label class="field">
+          <span>Через сколько минут бездействия Асуна подколет</span>
+          <input id="setScreenIdle" type="number" min="1" max="60" value="5" />
+        </label>
+        <button id="setScreenSave" class="btn-primary">Сохранить</button>
+
+        <div class="section-title">Ollama (локальная Gemma)</div>
+        <div class="hint">Приложение само пытается поднять "ollama serve" и прогреть модель при запуске — руками ничего включать не нужно, если Ollama установлена и есть в PATH.</div>
+        <label class="toggle-row">
+          <span>Запускать Ollama автоматически</span>
+          <input id="toggleOllamaAuto" type="checkbox" />
+        </label>
+        <label class="field">
+          <span>Адрес Ollama</span>
+          <input id="setOllamaHost" type="text" placeholder="http://127.0.0.1:11434" />
+        </label>
+        <label class="field">
+          <span>Модель для прогрева</span>
+          <input id="setOllamaModel" type="text" placeholder="gemma3n" />
+        </label>
+        <button id="setOllamaSave" class="btn-primary">Сохранить</button>
+
+        <div class="section-title">Горячие клавиши</div>
+        <div class="hint">Ctrl+Shift+A — показать/скрыть питомца · Ctrl+Shift+C — открыть эту панель</div>
+
+        <div class="hint" style="margin-top:14px">
+          <a id="revealHiddenModes" style="cursor:pointer">···</a>
+        </div>
+        <div id="hiddenModesBlock" style="display:none">
+          <div class="section-title">Режим отработки знакомств</div>
+          <div class="hint">
+            Отдельный, полностью изолированный режим-тренажёр: случайное место, случайная
+            ситуация, случайный характер — цель научиться начинать разговор с незнакомым
+            человеком. Ничего из этого режима НЕ сохраняется в долгосрочную память и не
+            смешивается с обычным чатом. Персонаж всегда реагирует реалистично, а не
+            автоматически благосклонно.
+          </div>
+          <button id="btnPickupStart" class="btn-primary">Начать (случайный сценарий)</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <audio id="ttsPlayer" style="display:none"></audio>
+
+  <script src="control.js"></script>
+</body>
+</html>

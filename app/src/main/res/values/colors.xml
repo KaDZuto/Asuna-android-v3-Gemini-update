@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand palette -->
+    <color name="brand_orange">#FFFF9F66</color>
+    <color name="brand_peach">#FFFFC78A</color>
+    <color name="brand_lavender">#FFB8A0FF</color>
+
+    <!-- Background -->
+    <color name="bg_dark_purple">#FF1A0F1F</color>
+    <color name="bg_surface">#FF261829</color>
+    <color name="bg_surface_variant">#FF3D2937</color>
+
+    <!-- Text -->
+    <color name="text_cream">#FFF5EBE0</color>
+    <color name="text_dark">#FF1A0F1F</color>
+    <color name="text_blue">#FF3A7BD5</color>
+    <color name="text_blue_bg_white">#FFFFFFFF</color>
+    <color name="text_yellow">#FFFFD166</color>
+    <color name="text_orange">#FFFF9F66</color>
+
+    <!-- Status -->
+    <color name="status_error">#FFFF6B6B</color>
+    <color name="status_listening">#FF4FC3F7</color>
+    <color name="status_speaking">#FFFF9F66</color>
+
+    <!-- System bars (edge-to-edge) -->
+    <color name="status_bar_transparent">#00000000</color>
+    <color name="nav_bar_transparent">#00000000</color>
+</resources>

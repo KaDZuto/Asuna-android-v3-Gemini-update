@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">Asuna</string>
+
+    <!-- Главный экран -->
+    <string name="ptt_button_content_description">Удерживайте для записи голоса</string>
+    <string name="ptt_state_idle">Готов к разговору</string>
+    <string name="ptt_state_listening">Слушаю…</string>
+    <string name="ptt_state_thinking">Думаю…</string>
+    <string name="ptt_state_speaking">Асуна говорит…</string>
+
+    <!-- Навигация -->
+    <string name="nav_chat">Чат</string>
+    <string name="nav_settings">Настройки</string>
+    <string name="nav_calendar">Календарь</string>
+    <string name="nav_media">Медиа</string>
+    <string name="nav_vision">Live Vision</string>
+
+    <!-- Настройки -->
+    <string name="settings_llm_section">LLM-провайдер</string>
+    <string name="settings_stt_section">Распознавание речи (STT)</string>
+    <string name="settings_tts_section">Озвучка (TTS)</string>
+    <string name="settings_calendar_section">Google Calendar</string>
+    <string name="settings_theme_section">Тема и шрифт</string>
+    <string name="settings_api_key">API-ключ</string>
+    <string name="settings_base_url">Base URL</string>
+    <string name="settings_model">Модель</string>
+    <string name="settings_sign_in_google">Войти через Google</string>
+    <string name="settings_sign_out_google">Отключить Google</string>
+
+    <!-- Цвета текста -->
+    <string name="text_color_black">Чёрный</string>
+    <string name="text_color_blue">Синий (на белой подложке)</string>
+    <string name="text_color_orange">Оранжевый</string>
+    <string name="text_color_yellow">Жёлтый</string>
+    <string name="text_color_gradient">Градиент</string>
+
+    <!-- Foreground Service уведомление -->
+    <string name="notification_channel_companion">Асуна рядом</string>
+    <string name="notification_channel_companion_desc">Фоновая работа ассистента</string>
+    <string name="notification_companion_title">Асуна слушает</string>
+    <string name="notification_companion_text">Нажмите, чтобы открыть</string>
+
+    <!-- Permissions -->
+    <string name="permission_microphone_required">Нужен доступ к микрофону для PTT</string>
+    <string name="permission_camera_required">Нужен доступ к камере для Live Vision</string>
+</resources>

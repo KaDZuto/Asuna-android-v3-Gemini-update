@@ -1,0 +1,13 @@
+<resources>
+    <!--
+        Theme.Asuna — базовая Compose-совместимая тема.
+        Цвета берутся из Compose AsunaTheme.kt; XML-тема задаёт только
+        прозрачные системные бары (edge-to-edge) и font-family.
+    -->
+    <style name="Theme.Asuna" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:statusBarColor">@color/status_bar_transparent</item>
+        <item name="android:navigationBarColor">@color/nav_bar_transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowDrawsSystemBarBackgrounds">true</item>
+    </style>
+</resources>

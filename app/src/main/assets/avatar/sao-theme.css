@@ -1,0 +1,738 @@
+/* SAO Theme — Sword Art Online UI стиль */
+@font-face {
+  font-family: 'Rationale';
+  src: url('../SAO-UI/fonts/Rationale/Rationale-Regular.ttf') format('truetype');
+}
+
+:root {
+  --sao-bg: #0a0a0a;
+  --sao-surface: #1a1a1a;
+  --sao-border: #2a2a2a;
+  --sao-text: #cfd0c5;
+  --sao-text-dim: #616256;
+  --sao-accent: #d49c17;
+  --sao-accent-hover: #e8b820;
+  --sao-blue: #5898be;
+  --sao-red: #e2576e;
+  --sao-glow: 0 0 20px rgba(212, 156, 23, 0.15);
+  --sao-font: 'Rationale', 'Courier New', monospace;
+}
+
+/* Сброс и база */
+.sao-theme *,
+.sao-theme *::after,
+.sao-theme *::before {
+  color: var(--sao-text);
+  font-family: var(--sao-font);
+  line-height: 1.5;
+  font-weight: normal;
+  box-sizing: border-box;
+  padding: 0;
+  border: none;
+  outline: none;
+  margin: 0;
+  cursor: default;
+}
+
+.sao-theme {
+  background-color: var(--sao-bg);
+  color: var(--sao-text);
+  font-family: var(--sao-font);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  user-select: none;
+}
+
+/* Заголовки */
+.sao-theme h1, .sao-theme h2, .sao-theme h3 {
+  color: var(--sao-text);
+  font-weight: normal;
+  letter-spacing: 0.05em;
+}
+
+.sao-theme h1 { font-size: 2.5rem; }
+.sao-theme h2 { font-size: 1.8rem; }
+.sao-theme h3 { font-size: 1.2rem; }
+
+/* Кнопки в стиле SAO */
+.sao-btn {
+  display: inline-block;
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  border: 0.125rem solid var(--sao-text);
+  border-radius: 0;
+  color: var(--sao-text);
+  font-family: var(--sao-font);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  position: relative;
+  background: rgba(26, 26, 26, 0.8);
+}
+
+.sao-btn:hover,
+.sao-btn:focus {
+  border-color: var(--sao-accent);
+  color: var(--sao-accent);
+  box-shadow: var(--sao-glow);
+}
+
+.sao-btn:active {
+  border-color: var(--sao-accent-hover);
+  color: var(--sao-accent-hover);
+}
+
+.sao-btn-primary {
+  border-color: var(--sao-blue);
+  color: var(--sao-blue);
+}
+
+.sao-btn-primary:hover {
+  border-color: var(--sao-blue);
+  color: var(--sao-text);
+  background: var(--sao-blue);
+}
+
+.sao-btn-danger {
+  border-color: var(--sao-red);
+  color: var(--sao-red);
+}
+
+.sao-btn-danger:hover {
+  border-color: var(--sao-red);
+  color: var(--sao-text);
+  background: var(--sao-red);
+}
+
+.sao-btn-small {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+}
+
+/* Поля ввода */
+.sao-input {
+  background: transparent;
+  border: 0.125rem solid var(--sao-border);
+  padding: 0.5rem 0.75rem;
+  color: var(--sao-text);
+  font-family: var(--sao-font);
+  font-size: 1rem;
+  width: 100%;
+  transition: border-color 0.2s ease;
+}
+
+.sao-input:focus {
+  border-color: var(--sao-accent);
+  box-shadow: var(--sao-glow);
+}
+
+.sao-input::placeholder {
+  color: var(--sao-text-dim);
+  opacity: 0.6;
+}
+
+/* Выпадающие списки */
+.sao-select {
+  background: var(--sao-surface);
+  border: 0.125rem solid var(--sao-border);
+  padding: 0.5rem 0.75rem;
+  color: var(--sao-text);
+  font-family: var(--sao-font);
+  font-size: 1rem;
+  width: 100%;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23cfd0c5' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+}
+
+.sao-select:focus {
+  border-color: var(--sao-accent);
+}
+
+.sao-select option {
+  background: var(--sao-surface);
+  color: var(--sao-text);
+}
+
+/* Чекбоксы (toggle) */
+.sao-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.sao-toggle input[type="checkbox"] {
+  appearance: none;
+  width: 2.5rem;
+  height: 1.25rem;
+  background: var(--sao-border);
+  border: 0.125rem solid var(--sao-text-dim);
+  border-radius: 0;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sao-toggle input[type="checkbox"]::after {
+  content: '';
+  position: absolute;
+  top: 0.125rem;
+  left: 0.125rem;
+  width: 0.75rem;
+  height: 0.75rem;
+  background: var(--sao-text-dim);
+  transition: all 0.2s ease;
+}
+
+.sao-toggle input[type="checkbox"]:checked {
+  border-color: var(--sao-accent);
+}
+
+.sao-toggle input[type="checkbox"]:checked::after {
+  left: 1.25rem;
+  background: var(--sao-accent);
+}
+
+.sao-toggle input[type="checkbox"]:focus {
+  border-color: var(--sao-accent);
+  box-shadow: var(--sao-glow);
+}
+
+/* SAO Panel — панель с рамкой */
+.sao-panel {
+  background: var(--sao-surface);
+  border: 0.125rem solid var(--sao-border);
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.sao-panel-title {
+  color: var(--sao-text-dim);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  border-bottom: 0.0625rem solid var(--sao-border);
+  padding-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+/* SAO Modal (всплывающее окно) */
+.sao-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 9999;
+  animation: saoFadeIn 0.25s forwards;
+}
+
+.sao-modal-content {
+  background: var(--sao-surface);
+  border: 0.125rem solid var(--sao-border);
+  padding: 2rem;
+  min-width: 20rem;
+  max-width: 90vw;
+  max-height: 80vh;
+  overflow-y: auto;
+  animation: saoModalIn 0.3s forwards;
+  transform-style: preserve-3d;
+}
+
+@keyframes saoFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes saoModalIn {
+  0% { opacity: 0; transform: rotateX(-90deg); }
+  100% { opacity: 1; transform: rotateX(0deg); }
+}
+
+@keyframes saoModalOut {
+  0% { opacity: 1; transform: rotateX(0deg); }
+  100% { opacity: 0; transform: rotateX(-90deg); }
+}
+
+.sao-modal-footer {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 0.0625rem solid var(--sao-border);
+}
+
+/* SAO Menu (боковое меню) */
+.sao-menu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  padding: 1rem;
+  transform: translateY(-100%);
+  transition: transform 0.2s ease;
+  z-index: 100;
+  background: var(--sao-surface);
+  border: 0.125rem solid var(--sao-border);
+  border-top: none;
+}
+
+.sao-menu.open {
+  transform: translateY(0);
+}
+
+/* Скроллбар в стиле SAO */
+.sao-theme ::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 0.5rem;
+}
+
+.sao-theme ::-webkit-scrollbar-track {
+  background: var(--sao-bg);
+}
+
+.sao-theme ::-webkit-scrollbar-thumb {
+  background: var(--sao-border);
+  border: 0.0625rem solid var(--sao-text-dim);
+}
+
+.sao-theme ::-webkit-scrollbar-thumb:hover {
+  background: var(--sao-accent);
+}
+
+/* Текст с затемнением */
+.sao-dim {
+  color: var(--sao-text-dim);
+}
+
+.sao-glow {
+  text-shadow: 0 0 20px rgba(212, 156, 23, 0.3);
+}
+
+/* Список в стиле SAO */
+.sao-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.sao-list li {
+  padding: 0.5rem 0;
+  border-bottom: 0.0625rem solid var(--sao-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.sao-list li:last-child {
+  border-bottom: none;
+}
+
+.sao-list .sao-list-item-active {
+  color: var(--sao-accent);
+  border-left: 0.25rem solid var(--sao-accent);
+  padding-left: 0.75rem;
+}
+
+/* Грид */
+.sao-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.sao-grid-2 { grid-template-columns: 1fr 1fr; }
+.sao-grid-3 { grid-template-columns: 1fr 1fr 1fr; }
+
+/* Метки */
+.sao-label {
+  display: block;
+  color: var(--sao-text-dim);
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.25rem;
+}
+
+/* Хинт */
+.sao-hint {
+  color: var(--sao-text-dim);
+  font-size: 0.75rem;
+  opacity: 0.7;
+  margin-top: 0.25rem;
+}
+
+/* SAO Header — шапка приложения */
+.sao-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1rem;
+  border-bottom: 0.125rem solid var(--sao-border);
+  background: var(--sao-surface);
+  flex-shrink: 0;
+}
+
+.sao-header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sao-header-brand .sao-logo {
+  color: var(--sao-accent);
+  font-size: 1.5rem;
+}
+
+.sao-header-brand .sao-title {
+  font-size: 1.2rem;
+  letter-spacing: 0.15em;
+  color: var(--sao-text);
+}
+
+.sao-header-brand .sao-subtitle {
+  font-size: 0.7rem;
+  color: var(--sao-text-dim);
+  letter-spacing: 0.1em;
+}
+
+.sao-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* Компактная кнопка-иконка */
+.sao-icon-btn {
+  background: transparent;
+  border: 0.125rem solid var(--sao-border);
+  color: var(--sao-text);
+  width: 2.2rem;
+  height: 2.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: all 0.2s ease;
+  border-radius: 0;
+}
+
+.sao-icon-btn:hover {
+  border-color: var(--sao-accent);
+  color: var(--sao-accent);
+  box-shadow: var(--sao-glow);
+}
+
+.sao-icon-btn:active {
+  border-color: var(--sao-accent-hover);
+  color: var(--sao-accent-hover);
+}
+
+/* Контейнер для основного контента */
+.sao-main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+/* SAO Tabs */
+.sao-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 0.125rem solid var(--sao-border);
+  flex-shrink: 0;
+  background: var(--sao-surface);
+}
+
+.sao-tab {
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  border: none;
+  border-bottom: 0.125rem solid transparent;
+  color: var(--sao-text-dim);
+  font-family: var(--sao-font);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.sao-tab:hover {
+  color: var(--sao-text);
+}
+
+.sao-tab.active {
+  color: var(--sao-accent);
+  border-bottom-color: var(--sao-accent);
+}
+
+/* SAO Chat Log */
+.sao-chat {
+  background: var(--sao-bg);
+  border: 0.125rem solid var(--sao-border);
+  padding: 0.75rem;
+  height: 200px;
+  overflow-y: auto;
+  margin-bottom: 0.75rem;
+}
+
+.sao-chat .sao-msg {
+  padding: 0.3rem 0.5rem;
+  border-bottom: 0.0625rem solid rgba(42, 42, 42, 0.5);
+}
+
+.sao-chat .sao-msg .sao-who {
+  color: var(--sao-accent);
+  margin-right: 0.5rem;
+  font-weight: bold;
+}
+
+.sao-chat .sao-msg-user .sao-who {
+  color: var(--sao-blue);
+}
+
+/* SAO Voice Row */
+.sao-voice-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sao-voice-row select {
+  flex: 1;
+  min-width: 100px;
+}
+
+.sao-record-btn {
+  padding: 0.4rem 1rem;
+  border: 0.125rem solid var(--sao-border);
+  background: transparent;
+  color: var(--sao-text);
+  cursor: pointer;
+  font-family: var(--sao-font);
+  transition: all 0.2s ease;
+}
+
+.sao-record-btn:hover {
+  border-color: var(--sao-accent);
+}
+
+.sao-record-btn.active {
+  border-color: var(--sao-red);
+  color: var(--sao-red);
+}
+
+/* SAO Chat Row */
+.sao-chat-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.sao-chat-row input {
+  flex: 1;
+}
+
+.sao-chat-row button {
+  padding: 0.4rem 1rem;
+  border: 0.125rem solid var(--sao-border);
+  background: transparent;
+  color: var(--sao-text);
+  cursor: pointer;
+  font-family: var(--sao-font);
+  transition: all 0.2s ease;
+}
+
+.sao-chat-row button:hover {
+  border-color: var(--sao-accent);
+  color: var(--sao-accent);
+}
+
+/* SAO Sleep Row */
+.sao-sleep-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+  flex-wrap: wrap;
+}
+
+/* ========================================
+   Окно плеера в стиле SAO
+   ======================================== */
+.sao-player {
+  background: var(--sao-bg);
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  padding: 1rem;
+}
+
+.sao-player-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 0.125rem solid var(--sao-border);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.sao-player-header h2 {
+  color: var(--sao-text);
+  font-size: 1.5rem;
+  letter-spacing: 0.1em;
+}
+
+.sao-player-header .sao-close-btn {
+  background: transparent;
+  border: 0.125rem solid var(--sao-border);
+  color: var(--sao-text);
+  width: 2.2rem;
+  height: 2.2rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sao-player-header .sao-close-btn:hover {
+  border-color: var(--sao-red);
+  color: var(--sao-red);
+}
+
+.sao-player-list {
+  flex: 1;
+  overflow-y: auto;
+  border: 0.125rem solid var(--sao-border);
+  padding: 0.5rem;
+  margin-bottom: 0.75rem;
+  background: var(--sao-surface);
+}
+
+.sao-player-list .sao-track {
+  padding: 0.4rem 0.6rem;
+  border-bottom: 0.0625rem solid var(--sao-border);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: all 0.15s ease;
+}
+
+.sao-player-list .sao-track:hover {
+  background: rgba(212, 156, 23, 0.1);
+  border-color: var(--sao-accent);
+}
+
+.sao-player-list .sao-track.active {
+  background: rgba(212, 156, 23, 0.15);
+  border-left: 0.25rem solid var(--sao-accent);
+  padding-left: 0.35rem;
+}
+
+.sao-player-list .sao-track .sao-track-name {
+  color: var(--sao-text);
+}
+
+.sao-player-list .sao-track .sao-track-index {
+  color: var(--sao-text-dim);
+  font-size: 0.75rem;
+}
+
+.sao-player-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0;
+  border-top: 0.125rem solid var(--sao-border);
+  padding-top: 0.75rem;
+}
+
+.sao-player-controls button {
+  background: transparent;
+  border: 0.125rem solid var(--sao-border);
+  color: var(--sao-text);
+  width: 2.8rem;
+  height: 2.8rem;
+  cursor: pointer;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.sao-player-controls button:hover {
+  border-color: var(--sao-accent);
+  color: var(--sao-accent);
+  box-shadow: var(--sao-glow);
+}
+
+.sao-player-controls .sao-play-btn {
+  width: 3.5rem;
+  height: 3.5rem;
+  font-size: 1.5rem;
+  border-color: var(--sao-accent);
+  color: var(--sao-accent);
+}
+
+.sao-player-controls .sao-play-btn:hover {
+  background: var(--sao-accent);
+  color: var(--sao-bg);
+}
+
+.sao-player-volume {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-left: 1rem;
+}
+
+.sao-player-volume input[type="range"] {
+  width: 80px;
+  height: 0.25rem;
+  -webkit-appearance: none;
+  background: var(--sao-border);
+  border: none;
+  outline: none;
+}
+
+.sao-player-volume input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 0.75rem;
+  height: 0.75rem;
+  background: var(--sao-accent);
+  border: 0.125rem solid var(--sao-text);
+  cursor: pointer;
+}
+
+.sao-player-volume .sao-volume-label {
+  color: var(--sao-text-dim);
+  font-size: 0.75rem;
+  min-width: 2.5rem;
+}
+
+/* Пустое состояние */
+.sao-empty {
+  color: var(--sao-text-dim);
+  text-align: center;
+  padding: 2rem;
+  font-style: italic;
+}

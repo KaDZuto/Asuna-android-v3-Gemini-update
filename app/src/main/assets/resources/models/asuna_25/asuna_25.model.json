@@ -1,0 +1,270 @@
+{
+  "version": "Sample 1.0.0",
+  "model": "moc/asuna_25.moc",
+  "textures": [
+    "moc/asuna_25.1024/texture_00.png",
+    "moc/asuna_25.1024/texture_01.png",
+    "moc/asuna_25.1024/texture_02.png",
+    "moc/asuna_25.1024/texture_03.png"
+  ],
+  "expressions": [
+    {
+      "name": "F_FUN",
+      "file": "exp/F_FUN.exp.json"
+    },
+    {
+      "name": "F_FUN_HANIKAMI",
+      "file": "exp/F_FUN_HANIKAMI.exp.json"
+    },
+    {
+      "name": "F_FUN_MAX",
+      "file": "exp/F_FUN_MAX.exp.json"
+    },
+    {
+      "name": "F_FUN_SMILE",
+      "file": "exp/F_FUN_SMILE.exp.json"
+    },
+    {
+      "name": "F_FUN_WARM",
+      "file": "exp/F_FUN_WARM.exp.json"
+    },
+    {
+      "name": "F_NOMAL",
+      "file": "exp/F_NOMAL.exp.json"
+    },
+    {
+      "name": "F_SAD",
+      "file": "exp/F_SAD.exp.json"
+    },
+    {
+      "name": "F_SURPRISE",
+      "file": "exp/F_SURPRISE.exp.json"
+    },
+    {
+      "name": "F_ANGRY",
+      "file": "exp/F_ANGRY.exp.json"
+    },
+    {
+      "name": "F_SLEEP",
+      "file": "exp/F_SLEEP.exp.json"
+    },
+    {
+      "name": "F_ADORE",
+      "file": "exp/F_ADORE.exp.json"
+    },
+    {
+      "name": "F_AWKWARD",
+      "file": "exp/F_AWKWARD.exp.json"
+    },
+    {
+      "name": "F_BORED",
+      "file": "exp/F_BORED.exp.json"
+    },
+    {
+      "name": "F_CONFUSED",
+      "file": "exp/F_CONFUSED.exp.json"
+    },
+    {
+      "name": "F_CONTENT",
+      "file": "exp/F_CONTENT.exp.json"
+    },
+    {
+      "name": "F_CURIOUS",
+      "file": "exp/F_CURIOUS.exp.json"
+    },
+    {
+      "name": "F_DEPRESSED",
+      "file": "exp/F_DEPRESSED.exp.json"
+    },
+    {
+      "name": "F_DISAPPOINTED",
+      "file": "exp/F_DISAPPOINTED.exp.json"
+    },
+    {
+      "name": "F_DISGUSTED",
+      "file": "exp/F_DISGUSTED.exp.json"
+    },
+    {
+      "name": "F_DREAMY",
+      "file": "exp/F_DREAMY.exp.json"
+    },
+    {
+      "name": "F_EMBARRASSED",
+      "file": "exp/F_EMBARRASSED.exp.json"
+    },
+    {
+      "name": "F_EUPHORIA",
+      "file": "exp/F_EUPHORIA.exp.json"
+    },
+    {
+      "name": "F_EXHAUSTED",
+      "file": "exp/F_EXHAUSTED.exp.json"
+    },
+    {
+      "name": "F_FURIOUS",
+      "file": "exp/F_FURIOUS.exp.json"
+    },
+    {
+      "name": "F_GIGGLE",
+      "file": "exp/F_GIGGLE.exp.json"
+    },
+    {
+      "name": "F_HEARTBROKEN",
+      "file": "exp/F_HEARTBROKEN.exp.json"
+    },
+    {
+      "name": "F_IRRITATED",
+      "file": "exp/F_IRRITATED.exp.json"
+    },
+    {
+      "name": "F_LONGING",
+      "file": "exp/F_LONGING.exp.json"
+    },
+    {
+      "name": "F_MELANCHOLY",
+      "file": "exp/F_MELANCHOLY.exp.json"
+    },
+    {
+      "name": "F_PLAYFUL",
+      "file": "exp/F_PLAYFUL.exp.json"
+    },
+    {
+      "name": "F_POG",
+      "file": "exp/F_POG.exp.json"
+    },
+    {
+      "name": "F_POUTY",
+      "file": "exp/F_POUTY.exp.json"
+    },
+    {
+      "name": "F_PROUD",
+      "file": "exp/F_PROUD.exp.json"
+    },
+    {
+      "name": "F_SAD_CUTE",
+      "file": "exp/F_SAD_CUTE.exp.json"
+    },
+    {
+      "name": "F_SHOCKED",
+      "file": "exp/F_SHOCKED.exp.json"
+    },
+    {
+      "name": "F_SHY",
+      "file": "exp/F_SHY.exp.json"
+    },
+    {
+      "name": "F_SIGH",
+      "file": "exp/F_SIGH.exp.json"
+    },
+    {
+      "name": "F_SKEPTICAL",
+      "file": "exp/F_SKEPTICAL.exp.json"
+    },
+    {
+      "name": "F_SLEEPY",
+      "file": "exp/F_SLEEPY.exp.json"
+    },
+    {
+      "name": "F_SMUG",
+      "file": "exp/F_SMUG.exp.json"
+    },
+    {
+      "name": "F_SNEAKY",
+      "file": "exp/F_SNEAKY.exp.json"
+    },
+    {
+      "name": "F_TEASING",
+      "file": "exp/F_TEASING.exp.json"
+    },
+    {
+      "name": "F_TENDER",
+      "file": "exp/F_TENDER.exp.json"
+    },
+    {
+      "name": "F_WARM_SMILE",
+      "file": "exp/F_WARM_SMILE.exp.json"
+    }
+  ],
+  "hit_areas": [
+    {
+      "name": "chest",
+      "id": "D_REF.PT_CHEST"
+    },
+    {
+      "name": "head",
+      "id": "D_REF.PT_HEAD"
+    },
+    {
+      "name": "body",
+      "id": "D_REF.PT_BODY"
+    },
+    {
+      "name": "foot",
+      "id": "D_REF.PT_FOOT"
+    }
+  ],
+  "motions": {
+    "": [
+      {
+        "file": "mtn/I_ANGRY_S.mtn"
+      },
+      {
+        "file": "mtn/I_ANGRY_W.mtn"
+      },
+      {
+        "file": "mtn/I_FUN.mtn"
+      },
+      {
+        "file": "mtn/I_FUN_S.mtn"
+      },
+      {
+        "file": "mtn/I_FUN_W.mtn"
+      },
+      {
+        "file": "mtn/I_SAD.mtn"
+      },
+      {
+        "file": "mtn/I_SAD_S.mtn"
+      },
+      {
+        "file": "mtn/I_SAD_W.mtn"
+      },
+      {
+        "file": "mtn/I_SNEESE.mtn"
+      },
+      {
+        "file": "mtn/I_SURPRISE.mtn"
+      },
+      {
+        "file": "mtn/I_SURPRISE_S.mtn"
+      },
+      {
+        "file": "mtn/I_SURPRISE_W.mtn"
+      },
+      {
+        "file": "mtn/REPEAT_01.mtn"
+      },
+      {
+        "file": "mtn/REPEAT_02.mtn"
+      },
+      {
+        "file": "mtn/REPEAT_03.mtn"
+      },
+      {
+        "file": "mtn/I_ANGRY.mtn"
+      }
+    ],
+    "idle": [
+      {
+        "file": "mtn/IDLING.mtn"
+      },
+      {
+        "file": "mtn/IDLING_02.mtn"
+      },
+      {
+        "file": "mtn/IDLING_03.mtn"
+      }
+    ]
+  },
+  "physics": "asuna_25.physics.json"
+}

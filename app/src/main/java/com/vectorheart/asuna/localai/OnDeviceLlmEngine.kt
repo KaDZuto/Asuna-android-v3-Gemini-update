@@ -102,6 +102,17 @@ class OnDeviceLlmEngine @Inject constructor(
         }
     }
 
+    /**
+     * Однократно добавляет контекст в начало диалога (история из лога чата после
+     * перезапуска приложения). Системный промпт сюда не входит — он шлётся отдельно.
+     */
+    @Synchronized
+    fun primeWithContext(recap: String) {
+        val s = session ?: return
+        if (contextInjected || recap.isBlank()) return
+        s.addQueryChunk(recap)
+    }
+
     /** Сколько токенов займёт текст в контексте этой модели (0 — неизвестно). */
     fun countTokens(text: String): Int = try {
         inference?.sizeInTokens(text) ?: 0

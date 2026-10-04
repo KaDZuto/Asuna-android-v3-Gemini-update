@@ -128,7 +128,8 @@ fun SettingsSheetContent(
     onOpenTtsSettings: () -> Unit,
     onClose: () -> Unit,
     onOpenMemorySheet: () -> Unit = {},
-    onBackgroundChanged: () -> Unit = {}
+    onBackgroundChanged: () -> Unit = {},
+    onOpenLocalModels: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("asuna_settings", android.content.Context.MODE_PRIVATE) }
@@ -289,6 +290,21 @@ fun SettingsSheetContent(
             modifier = Modifier.fillMaxWidth(),
             maxLines = 3
         )
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            OutlinedButton(
+                onClick = {
+                    onClose()
+                    onOpenLocalModels()
+                },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("⬇ Скачать модель для Асуны")
+            }
+        }
         Spacer(Modifier.height(8.dp))
         Button(
             onClick = onOpenMemorySheet,

@@ -147,6 +147,13 @@ class LlmRepository @Inject constructor(
             val path = model?.takeIf { it.isNotBlank() }
                 ?: throw IllegalArgumentException("Не выбрана on-device .task модель (Настройки → Локальные модели → On-Device)")
             onDeviceLlmEngine.ensureLoaded(path, maxContextTokens = onDeviceContextLimit(sysPrompt))
+            // Если сессия пустая, а в логе чата уже есть реплики — подставляем краткий пересказ
+            if (history.isNotEmpty()) {
+                val recap = history.takeLast(6).joinToString("\n") { (role, content) ->
+                    (if (role == "user") "Пользователь: " else "Асуна: ") + content.replace(Regex("\\s+"), " ").take(200)
+                }
+                onDeviceLlmEngine.primeWithContext("Краткий пересказ предыдущей беседы:\n$recap")
+            }
             onDeviceLlmEngine.chat(
                 userText = userText,
                 systemPrompt = sysPrompt,

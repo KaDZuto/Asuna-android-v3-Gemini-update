@@ -720,6 +720,7 @@ fun ChatScreen(
                 },
                 onClose = { showSettingsSheet = false },
                 onBackgroundChanged = { bgTick++ },
+                onOpenLocalModels = { showLocalModelsSheet = true },
                 onOpenMemorySheet = {
                     showSettingsSheet = false
                     showMemorySheet = true

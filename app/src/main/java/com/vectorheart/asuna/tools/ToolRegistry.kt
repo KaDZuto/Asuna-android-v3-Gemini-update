@@ -10,7 +10,9 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonPrimitive
@@ -72,7 +74,7 @@ class ToolRegistry @Inject constructor(
 
     private fun saveCalendarEvents(events: List<CalendarEvent>) {
         try {
-            calendarFile.writeText(json.encodeToString(events))
+            calendarFile.writeText(json.encodeToString(ListSerializer(CalendarEvent.serializer()), events))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save calendar events: ${e.message}")
         }
@@ -132,12 +134,18 @@ class ToolRegistry @Inject constructor(
     private fun executeCalendarList(args: JsonObject): String {
         val days = args["days"]?.jsonPrimitive?.contentOrNull?.toIntOrNull() ?: 14
         val events = loadCalendarEvents()
-        if (events.isEmpty()) return "В календаре пока нет событий на ближайшие $days дн."
+        val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+        val cal = java.util.Calendar.getInstance()
+        cal.add(java.util.Calendar.DAY_OF_YEAR, days)
+        val end = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(cal.time)
+        val upcoming = events
+            .filter { it.date >= today && it.date <= end }
+            .sortedWith(compareBy({ it.date }, { it.time ?: "" }))
+        if (upcoming.isEmpty()) return "В календаре пока нет событий на ближайшие $days дн."
 
-        val sorted = events.sortedWith(compareBy({ it.date }, { it.time ?: "" }))
         return buildString {
             append("Ближайшие события в календаре:\n")
-            sorted.take(10).forEach { e ->
+            upcoming.take(10).forEach { e ->
                 append("- [${e.id}] ${e.date}${if (e.time != null) " ${e.time}" else ""} — ${e.title}")
                 if (!e.notes.isNullOrBlank()) append(" (${e.notes})")
                 append("\n")
@@ -148,10 +156,22 @@ class ToolRegistry @Inject constructor(
     private fun executeCalendarRemove(args: JsonObject): String {
         val id = args["id"]?.jsonPrimitive?.contentOrNull ?: return "Ошибка: не указан id события."
         val events = loadCalendarEvents()
-        val removed = events.removeAll { it.id.equals(id, ignoreCase = true) || it.title.contains(id, ignoreCase = true) }
-        if (removed) {
+        // Сначала точное/регистронезависимое совпадение по id
+        val byId = events.filter { it.id.equals(id, ignoreCase = true) }
+        if (byId.isNotEmpty()) {
+            events.removeAll(byId.toSet())
             saveCalendarEvents(events)
-            return "Событие $id успешно удалено из календаря."
+            return "Событие ${byId.first().id} успешно удалено из календаря."
+        }
+        // По названию — только если совпадение ровно одно, иначе просим уточнить
+        val byTitle = events.filter { it.title.equals(id, ignoreCase = true) }
+        if (byTitle.size == 1) {
+            events.remove(byTitle.first())
+            saveCalendarEvents(events)
+            return "Событие \"${byTitle.first().title}\" успешно удалено из календаря."
+        }
+        if (byTitle.size > 1) {
+            return "Найдено несколько событий с названием '$id'. Уточни по id из calendar_list: ${byTitle.joinToString { it.id }}"
         }
         return "Событие с id или названием '$id' не найдено."
     }
@@ -179,10 +199,16 @@ class ToolRegistry @Inject constructor(
                 if (!answer.isNullOrBlank()) {
                     "Результат поиска по \"$query\":\n$answer ${if (source != null) "($source)" else ""}"
                 } else {
-                    // Fallback to related topics
-                    val topics = root?.get("RelatedTopics")
-                    if (topics != null && topics.toString().length > 30) {
-                        "По запросу \"$query\" найдены материалы: ${topics.toString().take(250)}..."
+                    // Fallback to related topics: собираем читаемые заголовки
+                    val topics = root?.get("RelatedTopics") as? JsonArray
+                    val snippets = topics?.mapNotNull { t ->
+                        val obj = t as? JsonObject ?: return@mapNotNull null
+                        obj["Text"]?.jsonPrimitive?.contentOrNull
+                            ?: (obj["Topics"] as? JsonArray)?.mapNotNull { it as? JsonObject }
+                                ?.mapNotNull { it["Text"]?.jsonPrimitive?.contentOrNull }?.firstOrNull()
+                    }?.filter { it.isNotBlank() }?.take(5)
+                    if (!snippets.isNullOrEmpty()) {
+                        "По запросу \"$query\" найдены материалы:\n" + snippets.joinToString("\n") { "- $it" }
                     } else {
                         "По запросу \"$query\" прямых быстрых фактов не найдено, поищи с более точными формулировками."
                     }

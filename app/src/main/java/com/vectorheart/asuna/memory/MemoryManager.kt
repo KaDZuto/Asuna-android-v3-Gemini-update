@@ -7,6 +7,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import java.io.File
 import java.text.SimpleDateFormat
@@ -55,7 +56,7 @@ class MemoryManager @Inject constructor(
 
     private fun saveMemories(list: List<MemoryEntry>) {
         try {
-            memoryFile.writeText(json.encodeToString(list))
+            memoryFile.writeText(json.encodeToString(ListSerializer(MemoryEntry.serializer()), list))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save memories: ${e.message}")
         }

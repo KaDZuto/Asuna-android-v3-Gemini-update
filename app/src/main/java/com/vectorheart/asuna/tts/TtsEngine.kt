@@ -103,7 +103,11 @@ class TtsEngine @Inject constructor(
     fun cleanForSpeech(raw: String): String {
         return raw
             .replace(Regex("""<live2d>[\s\S]*?</live2d>"""), "")
+            .replace(Regex("""<live2d>[\s\S]*$"""), "")
             .replace(Regex("""<tool>[\s\S]*?</tool>"""), "")
+            .replace(Regex("""<tool>[\s\S]*$"""), "")
+            .replace(Regex("""<think>[\s\S]*?</think>""", RegexOption.IGNORE_CASE), "")
+            .replace(Regex("""<think>[\s\S]*$""", RegexOption.IGNORE_CASE), "")
             .replace(Regex("""```[\s\S]*?```"""), "")
             .replace(Regex("""\*[^*]+\*"""), "") // убираем действия вида *улыбнулась*
             .replace(Regex("""https?://\S+"""), "ссылка")

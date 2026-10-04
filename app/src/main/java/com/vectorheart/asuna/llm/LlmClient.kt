@@ -355,7 +355,7 @@ class LlmClient @Inject constructor(
         if (mdl.startsWith("google/")) mdl = mdl.removePrefix("google/")
 
         val root = (if (baseUrl.isNullOrBlank()) "https://generativelanguage.googleapis.com/v1beta" else baseUrl).trimEnd('/')
-        val url = "$root/models/$mdl:generateContent?key=${apiKey.trim()}"
+        val url = "$root/models/$mdl:generateContent"
 
         val userParts = buildJsonArray {
             add(buildJsonObject { put("text", userMessage) })

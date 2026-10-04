@@ -8,6 +8,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -113,7 +114,7 @@ class LocalModelManager @Inject constructor(
 
     private fun saveImportedModels(list: List<ImportedModel>) {
         try {
-            modelsConfigFile.writeText(json.encodeToString(list))
+            modelsConfigFile.writeText(json.encodeToString(ListSerializer(ImportedModel.serializer()), list))
         } catch (e: Exception) {
             Log.e(TAG, "Failed to save models config: ${e.message}")
         }

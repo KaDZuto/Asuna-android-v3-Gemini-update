@@ -118,18 +118,21 @@ fun AvatarWebView(
             WebView(ctx).apply {
                 settings.apply {
                     javaScriptEnabled = true
-                    allowFileAccess = true
+                    allowFileAccess = false
                     allowContentAccess = true
                     domStorageEnabled = true
                     mediaPlaybackRequiresUserGesture = false
-                    javaScriptCanOpenWindowsAutomatically = true
-                    setSupportMultipleWindows(true)
-                    allowFileAccessFromFileURLs = true
-                    allowUniversalAccessFromFileURLs = true
-                    mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+                    javaScriptCanOpenWindowsAutomatically = false
+                    setSupportMultipleWindows(false)
+                    allowFileAccessFromFileURLs = false
+                    allowUniversalAccessFromFileURLs = false
+                    mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_NEVER_ALLOW
                 }
 
-                WebView.setWebContentsDebuggingEnabled(true)
+                // Отладка WebView включается только в debug-сборке (FLAG_DEBUGGABLE)
+                if (0 != (context.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE)) {
+                    WebView.setWebContentsDebuggingEnabled(true)
+                }
 
                 // Touch passthrough: в нижней зоне НЕ потребляем события —
                 // они идут наверх к Compose overlay-кнопкам.
@@ -145,6 +148,19 @@ fun AvatarWebView(
                         request: WebResourceRequest
                     ): WebResourceResponse? {
                         return assetLoader.shouldInterceptRequest(request.url)
+                    }
+
+                    override fun shouldOverrideUrlLoading(
+                        view: WebView,
+                        request: WebResourceRequest
+                    ): Boolean {
+                        val host = request.url.host
+                        // Разрешаем навигацию только внутри WebViewAssetLoader (appassets.androidplatform.net)
+                        val allowed = host == "appassets.androidplatform.net"
+                        if (!allowed) {
+                            Log.w(TAG, "Blocked navigation to: ${request.url}")
+                        }
+                        return !allowed
                     }
 
                     override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
@@ -166,7 +182,14 @@ fun AvatarWebView(
 
                 webChromeClient = object : WebChromeClient() {
                     override fun onPermissionRequest(request: PermissionRequest) {
-                        request.grant(request.resources)
+                        val origin = request.origin
+                        // Выдаём права только контенту из локального asset-лоадера
+                        if (origin != null && origin.toString().startsWith("https://appassets.androidplatform.net")) {
+                            request.grant(request.resources)
+                        } else {
+                            Log.w(TAG, "Denied permission request from origin: $origin")
+                            request.deny()
+                        }
                     }
 
                     override fun onCreateWindow(
@@ -175,16 +198,9 @@ fun AvatarWebView(
                         isUserGesture: Boolean,
                         resultMsg: Message?
                     ): Boolean {
-                        val newWebView = WebView(view.context).apply {
-                            settings.javaScriptEnabled = true
-                            settings.domStorageEnabled = true
-                            settings.allowFileAccess = true
-                            webViewClient = view.webViewClient
-                        }
-                        val transport = resultMsg?.obj as? WebView.WebViewTransport
-                        transport?.webView = newWebView
-                        resultMsg?.sendToTarget()
-                        return true
+                        // Попапы/новые окна не поддерживаем — безопаснее не создавать
+                        Log.w(TAG, "onCreateWindow blocked (dialog=$isDialog, gesture=$isUserGesture)")
+                        return false
                     }
 
                     override fun onConsoleMessage(msg: ConsoleMessage?): Boolean {

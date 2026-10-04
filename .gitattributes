@@ -1,0 +1,32 @@
+# Нормализация переводов строк: текст — LF, бинарники — без преобразования
+* text=auto eol=lf
+
+# Бинарные файлы
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.mp3 binary
+*.wav binary
+*.ogg binary
+*.mp4 binary
+*.webm binary
+*.so binary
+*.jar binary
+*.aar binary
+*.apk binary
+*.aab binary
+*.keystore binary
+*.jks binary
+*.ttf binary
+*.otf binary
+*.wasm binary
+*.moc binary
+*.moc3 binary
+*.physics3.json text eol=lf
+*.model3.json text eol=lf
+*.model.json text eol=lf
+*.cdi3.json text eol=lf
+*.mtn binary

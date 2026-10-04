@@ -92,6 +92,8 @@ class ToolRegistry @Inject constructor(
   Аргументы: {"query": string}
 - device_status: Узнать состояние телефона пользователя (модель, заряд батареи, текущее время).
   Аргументы: {}
+- send_notification: Отправить пользователю уведомление на телефон от имени Асуны.
+  Аргументы: {"title": string, "text": string}
         """.trimIndent()
     }
 
@@ -104,6 +106,7 @@ class ToolRegistry @Inject constructor(
                 "calendar_remove" -> executeCalendarRemove(args)
                 "web_search" -> executeWebSearch(args)
                 "device_status" -> executeDeviceStatus()
+                "send_notification" -> executeSendNotification(args)
                 else -> "Неизвестный инструмент '$name'."
             }
         } catch (e: Exception) {
@@ -229,6 +232,31 @@ class ToolRegistry @Inject constructor(
         val deviceModel = "${Build.MANUFACTURER} ${Build.MODEL}" // e.g. Xiaomi Mi 11T
 
         return "Статус устройства: модель $deviceModel, Android ${Build.VERSION.RELEASE} (API ${Build.VERSION.SDK_INT}), время $timeStr, батарея $batteryPct%."
+    }
+
+    private fun executeSendNotification(args: JsonObject): String {
+        val title = args["title"]?.jsonPrimitive?.contentOrNull ?: "Асуна"
+        val text = args["text"]?.jsonPrimitive?.contentOrNull
+            ?: return "Ошибка: не указан текст уведомления (text)."
+
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as? android.app.NotificationManager
+            ?: return "Ошибка: NotificationManager недоступен"
+
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = android.app.NotificationChannel(
+                "asuna_proactive", "Асуна", android.app.NotificationManager.IMPORTANCE_DEFAULT
+            ).apply { description = "Уведомления от Асуны" }
+            nm.createNotificationChannel(channel)
+        }
+
+        val notif = androidx.core.app.NotificationCompat.Builder(context, "asuna_proactive")
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
+            .setContentTitle(title)
+            .setContentText(text)
+            .setAutoCancel(true)
+            .build()
+        nm.notify((System.currentTimeMillis() % Int.MAX_VALUE).toInt(), notif)
+        return "Уведомление отправлено: \"$title — $text\""
     }
 
     companion object {

@@ -126,8 +126,15 @@ fun SettingsSheetContent(
     onTtsPitchChange: (Float) -> Unit,
     onTestSpeech: () -> Unit,
     onOpenTtsSettings: () -> Unit,
-    onClose: () -> Unit
+    onClose: () -> Unit,
+    onOpenMemorySheet: () -> Unit = {},
+    onBackgroundChanged: () -> Unit = {}
 ) {
+    val context = LocalContext.current
+    val prefs = remember { context.getSharedPreferences("asuna_settings", android.content.Context.MODE_PRIVATE) }
+    var personaUserName by remember { mutableStateOf(prefs.getString("persona_user_name", "") ?: "") }
+    var personaExtra by remember { mutableStateOf(prefs.getString("persona_extra", "") ?: "") }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -262,6 +269,60 @@ fun SettingsSheetContent(
                 Icon(Icons.Default.RecordVoiceOver, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(Modifier.width(4.dp))
                 Text("Голоса в системе")
+            }
+        }
+
+        Spacer(Modifier.height(18.dp))
+        Text("Личность и память", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(6.dp))
+        OutlinedTextField(
+            value = personaUserName,
+            onValueChange = { personaUserName = it; prefs.edit().putString("persona_user_name", it).apply() },
+            label = { Text("Ваше имя (Асуна будет так к вам обращаться)") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+        OutlinedTextField(
+            value = personaExtra,
+            onValueChange = { personaExtra = it; prefs.edit().putString("persona_extra", it).apply() },
+            label = { Text("Доп. правила личности (необязательно)") },
+            modifier = Modifier.fillMaxWidth(),
+            maxLines = 3
+        )
+        Spacer(Modifier.height(8.dp))
+        Button(
+            onClick = onOpenMemorySheet,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("🧠 Память Асуны (просмотр / импорт JSON)")
+        }
+        Spacer(Modifier.height(8.dp))
+
+        val bgLauncher = androidx.activity.compose.rememberLauncherForActivityResult(
+            contract = androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+        ) { uri ->
+            if (uri != null) {
+                try {
+                    val input = context.contentResolver.openInputStream(uri)
+                    val out = java.io.File(context.filesDir, "chat_background.img")
+                    input?.use { it.copyTo(out.outputStream()) }
+                    onBackgroundChanged()
+                    android.widget.Toast.makeText(context, "Фон установлен", android.widget.Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    android.widget.Toast.makeText(context, "Ошибка: ${e.message}", android.widget.Toast.LENGTH_LONG).show()
+                }
+            }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { bgLauncher.launch(arrayOf("image/*")) }, modifier = Modifier.weight(1f)) {
+                Text("🖼 Сменить фон чата")
+            }
+            OutlinedButton(onClick = {
+                val f = java.io.File(context.filesDir, "chat_background.img")
+                if (f.exists()) f.delete()
+                onBackgroundChanged()
+            }) {
+                Text("Сбросить")
             }
         }
 

@@ -9,6 +9,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.contentOrNull
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -128,6 +129,57 @@ class MemoryManager @Inject constructor(
         if (memoryFile.exists()) {
             memoryFile.delete()
         }
+    }
+
+    /**
+     * Импорт памяти из JSON (в формате ПК-версии).
+     * Поддерживает:
+     *  - массив объектов {timestamp, dateRu, summary} (родной формат)
+     *  - массив объектов с полями summary/text/content и опциональными date/dateRu/timestamp
+     *  - объект с полем "memories"/"entries"/"items" — массивом таких объектов
+     */
+    suspend fun importFromUri(context: android.content.Context, uri: android.net.Uri): Int = withContext(Dispatchers.IO) {
+        val text = context.contentResolver.openInputStream(uri)?.bufferedReader()?.use { it.readText() }
+            ?: throw RuntimeException("Не удалось прочитать файл")
+        val root = try {
+            kotlinx.serialization.json.Json.parseToJsonElement(text)
+        } catch (e: Exception) {
+            throw RuntimeException("Файл не является валидным JSON")
+        }
+
+        val array = when (root) {
+            is kotlinx.serialization.json.JsonArray -> root
+            is kotlinx.serialization.json.JsonObject -> {
+                val arr = root["memories"] ?: root["entries"] ?: root["items"] ?: root["data"]
+                arr as? kotlinx.serialization.json.JsonArray
+                    ?: throw RuntimeException("Не найден массив памяти в JSON")
+            }
+            else -> throw RuntimeException("Неподдерживаемый формат JSON")
+        }
+
+        val parsed = array.mapNotNull { el ->
+            val obj = el as? kotlinx.serialization.json.JsonObject ?: return@mapNotNull null
+            val summary = obj["summary"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull }
+                ?: obj["text"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull }
+                ?: obj["content"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull }
+                ?: return@mapNotNull null
+            val dateRu = obj["dateRu"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull }
+                ?: obj["date"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull }
+                ?: SimpleDateFormat("d MMMM yyyy, HH:mm", Locale("ru")).format(Date())
+            val ts = obj["timestamp"]?.let { (it as? kotlinx.serialization.json.JsonPrimitive)?.contentOrNull?.toLongOrNull() }
+                ?: System.currentTimeMillis()
+            MemoryEntry(timestamp = ts, dateRu = dateRu, summary = summary)
+        }
+
+        if (parsed.isEmpty()) throw RuntimeException("В JSON не найдено ни одной записи памяти")
+
+        val merged = (loadMemories() + parsed)
+            .distinctBy { "${it.dateRu}|${it.summary}" }
+            .sortedBy { it.timestamp }
+            .takeLast(50)
+        saveMemories(merged)
+        Log.d(TAG, "Imported ${parsed.size} memories, total ${merged.size}")
+        parsed.size
     }
 
     companion object {

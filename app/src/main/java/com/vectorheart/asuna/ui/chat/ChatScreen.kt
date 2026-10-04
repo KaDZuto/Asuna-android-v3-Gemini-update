@@ -74,6 +74,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.foundation.Image
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -169,6 +171,7 @@ fun ChatScreen(
         EntryPointAccessors.fromApplication(context.applicationContext, ChatScreenEntryPoint::class.java)
     }
     val llmRepository = remember { entryPoint.llmRepository() }
+    val memoryManager = remember { llmRepository.memoryManager }
     val localModelManager = remember { entryPoint.localModelManager() }
     val ttsManager = remember { entryPoint.ttsManager() }
     val ttsEngine = remember { entryPoint.ttsEngine() }
@@ -225,11 +228,36 @@ fun ChatScreen(
     var showModelSheet by remember { mutableStateOf(false) }
     var showChatSheet by remember { mutableStateOf(false) }
     var showLocalModelsSheet by remember { mutableStateOf(false) }
+    var showMemorySheet by remember { mutableStateOf(false) }
     var textInputValue by remember { mutableStateOf("") }
 
     val micPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) { granted -> hasMicPermission = granted }
+
+    // Запрашиваем разрешение на уведомления (Android 13+)
+    val notifPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { _ -> }
+    LaunchedEffect(Unit) {
+        if (android.os.Build.VERSION.SDK_INT >= 33 &&
+            ContextCompat.checkSelfPermission(context, android.Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+        ) {
+            notifPermissionLauncher.launch(android.Manifest.permission.POST_NOTIFICATIONS)
+        }
+    }
+
+    // Фон чата: пользовательская картинка
+    var bgTick by remember { mutableStateOf(0) }
+    val bgFile = remember { java.io.File(context.filesDir, "chat_background.img") }
+    val bgBitmap: androidx.compose.ui.graphics.ImageBitmap? = remember(bgTick) {
+        if (bgFile.exists()) {
+            try {
+                val bmp = android.graphics.BitmapFactory.decodeFile(bgFile.absolutePath)
+                bmp?.asImageBitmap()
+            } catch (_: Exception) { null }
+        } else null
+    }
 
     // Лаунчер для импорта локальных .gguf моделей
     val modelPickerLauncher = rememberLauncherForActivityResult(
@@ -473,6 +501,16 @@ fun ChatScreen(
                 )
             )
     ) {
+        if (bgBitmap != null) {
+            androidx.compose.foundation.Image(
+                bitmap = bgBitmap,
+                contentDescription = null,
+                contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                modifier = Modifier.fillMaxSize().alpha(0.4f)
+            )
+            Box(modifier = Modifier.fillMaxSize().background(androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.35f)))
+        }
+
         AvatarWebView(
             bridge = bridge,
             modifier = Modifier.fillMaxSize(),
@@ -674,7 +712,26 @@ fun ChatScreen(
                         Toast.makeText(context, "Не удалось открыть настройки TTS", Toast.LENGTH_SHORT).show()
                     }
                 },
-                onClose = { showSettingsSheet = false }
+                onClose = { showSettingsSheet = false },
+                onBackgroundChanged = { bgTick++ },
+                onOpenMemorySheet = {
+                    showSettingsSheet = false
+                    showMemorySheet = true
+                }
+            )
+        }
+    }
+
+    // ============= Memory Sheet =============
+    if (showMemorySheet) {
+        val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ModalBottomSheet(
+            onDismissRequest = { showMemorySheet = false },
+            sheetState = sheetState
+        ) {
+            MemorySheetContent(
+                memoryManager = memoryManager,
+                onClose = { showMemorySheet = false }
             )
         }
     }

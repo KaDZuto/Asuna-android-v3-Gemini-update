@@ -80,8 +80,19 @@ class LlmRepository @Inject constructor(
         val toolsDesc = toolRegistry.describeTools()
         val memoryContext = memoryManager.getMemoryPromptContext()
 
+        // Персональные настройки личности из SharedPreferences
+        val prefs = context.getSharedPreferences("asuna_settings", android.content.Context.MODE_PRIVATE)
+        val userName = prefs.getString("persona_user_name", "")?.trim().orEmpty()
+        val personaExtra = prefs.getString("persona_extra", "")?.trim().orEmpty()
+
         return buildString {
             append(LlmClient.BASE_SYSTEM_PROMPT)
+            if (userName.isNotBlank()) {
+                append("\n\n== ИМЯ ПОЛЬЗОВАТЕЛЯ ==\n\nПользователя зовут $userName. Обращайся к нему по имени, когда уместно.")
+            }
+            if (personaExtra.isNotBlank()) {
+                append("\n\n== ДОПОЛНИТЕЛЬНЫЕ ПРАВИЛА ЛИЧНОСТИ ==\n\n$personaExtra")
+            }
             append("\n\n== ТЕКУЩАЯ ДАТА И ВРЕМЯ ==\n")
             append("Сейчас: $nowRu. Всегда используй это системное время для ответов.\n\n")
 

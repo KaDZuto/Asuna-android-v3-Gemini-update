@@ -103,39 +103,61 @@ class LocalModelManager @Inject constructor(
     )
 
     /**
-     * Рекомендации для встроенного on-device инференса (MediaPipe GenAI, .task).
+     * Рекомендации для встроенного on-device инференса (MediaPipe GenAI / LiteRT, .task).
      * Используются через OnDeviceLlmEngine — без Termux.
      */
     val onDeviceRecommendations: List<ModelRecommendation> = listOf(
+        ModelRecommendation(
+            title = "Gemma 4 E2B IT — LiteRT (без логина)",
+            filename = "gemma-4-E2B-it-web.task",
+            sizeFormatted = "1.86 ГБ",
+            ramUsage = "~2.4 ГБ RAM",
+            speedMi11T = "20-30 ток/сек (очень шустро)",
+            huggingFaceUrl = "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm",
+            description = "Google Gemma 4 нового поколения! Архитектура E2B (2B параметров), контекст до 32k. Открытая — токен HF НЕ требуется.",
+            downloadUrl = "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it-web.task",
+            requiresHfToken = false
+        ),
         ModelRecommendation(
             title = "Qwen 2.5 1.5B Instruct — q8, контекст 4096",
             filename = "Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv4096.task",
             sizeFormatted = "1.60 ГБ",
             ramUsage = "~2.4 ГБ RAM",
-            speedMi11T = "12-20 ток/сек",
+            speedMi11T = "14-22 ток/сек",
             huggingFaceUrl = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct",
-            description = "Лучший выбор для Асуны: отлично знает русский, контекста хватает на длинную личность + память. Без логина.",
+            description = "Отлично знает русский язык, контекста 4096 хватает на длинную личность и память. Без логина.",
             downloadUrl = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv4096.task"
+        ),
+        ModelRecommendation(
+            title = "Qwen 2.5 0.5B Instruct — q8 (самая лёгкая, идеал под Lite LLM)",
+            filename = "Qwen2.5-0.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
+            sizeFormatted = "0.55 ГБ",
+            ramUsage = "~1.0 ГБ RAM",
+            speedMi11T = "28-40 ток/сек (летает)",
+            huggingFaceUrl = "https://huggingface.co/litert-community/Qwen2.5-0.5B-Instruct",
+            description = "Ультра-легкая (550 МБ). В режиме 'Lite LLM' отвечает мгновенно, не греет батарею и оставляет максимум RAM под контекст.",
+            downloadUrl = "https://huggingface.co/litert-community/Qwen2.5-0.5B-Instruct/resolve/main/Qwen2.5-0.5B-Instruct_multi-prefill-seq_q8_ekv1280.task"
         ),
         ModelRecommendation(
             title = "Qwen 2.5 1.5B Instruct — q8, контекст 1280",
             filename = "Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
             sizeFormatted = "1.60 ГБ",
             ramUsage = "~2.2 ГБ RAM",
-            speedMi11T = "15-22 ток/сек",
+            speedMi11T = "16-24 ток/сек",
             huggingFaceUrl = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct",
-            description = "То же качество, но быстрее и экономнее по RAM. Короткая память беседы.",
+            description = "То же качество 1.5B, но оптимизировано под 1280 токенов для устройств с малым объемом свободной RAM.",
             downloadUrl = "https://huggingface.co/litert-community/Qwen2.5-1.5B-Instruct/resolve/main/Qwen2.5-1.5B-Instruct_multi-prefill-seq_q8_ekv1280.task"
         ),
         ModelRecommendation(
-            title = "Qwen 2.5 0.5B Instruct — q8 (самая лёгкая)",
-            filename = "Qwen2.5-0.5B-Instruct_multi-prefill-seq_q8_ekv1280.task",
-            sizeFormatted = "0.55 ГБ",
-            ramUsage = "~1.1 ГБ RAM",
-            speedMi11T = "25-35 ток/сек",
-            huggingFaceUrl = "https://huggingface.co/litert-community/Qwen2.5-0.5B-Instruct",
-            description = "Максимально быстрая и тёплая — для слабых батареек. Русский понимает, но отвечает проще.",
-            downloadUrl = "https://huggingface.co/litert-community/Qwen2.5-0.5B-Instruct/resolve/main/Qwen2.5-0.5B-Instruct_multi-prefill-seq_q8_ekv1280.task"
+            title = "Gemma 4 E4B IT — LiteRT (для 8GB+ RAM)",
+            filename = "gemma-4-E4B-it-web.task",
+            sizeFormatted = "2.76 ГБ",
+            ramUsage = "~3.8 ГБ RAM",
+            speedMi11T = "10-18 ток/сек",
+            huggingFaceUrl = "https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm",
+            description = "Мощная 4B модель Gemma 4 для флагманов. Глубокое понимание сложных тем и тонкого юмора. Без логина.",
+            downloadUrl = "https://huggingface.co/litert-community/gemma-4-E4B-it-litert-lm/resolve/main/gemma-4-E4B-it-web.task",
+            requiresHfToken = false
         ),
         ModelRecommendation(
             title = "Phi-4-mini-instruct — q8, контекст 4096",
@@ -144,29 +166,19 @@ class LocalModelManager @Inject constructor(
             ramUsage = "~4.5 ГБ RAM",
             speedMi11T = "6-11 ток/сек",
             huggingFaceUrl = "https://huggingface.co/litert-community/Phi-4-mini-instruct",
-            description = "Самая умная из доступных без логина, но заметно медленнее и нужно 4+ ГБ свободной RAM.",
+            description = "Самая умная модель без логина, но требует 4+ ГБ свободной RAM и мощный процессор.",
             downloadUrl = "https://huggingface.co/litert-community/Phi-4-mini-instruct/resolve/main/Phi-4-mini-instruct_multi-prefill-seq_q8_ekv4096.task"
         ),
         ModelRecommendation(
-            title = "Gemma 3 1B-it — int4 (нужен токен HuggingFace)",
+            title = "Gemma 3 1B-it — int4 (нужен токен HF + принятие условий)",
             filename = "gemma3-1b-it-int4.task",
             sizeFormatted = "0.56 ГБ",
             ramUsage = "~1.2 ГБ RAM",
             speedMi11T = "20-30 ток/сек",
             huggingFaceUrl = "https://huggingface.co/litert-community/Gemma3-1B-IT",
-            description = "Лёгкая и быстрая. Gemma — gated: вставь токен HuggingFace (бесплатно) в поле ниже.",
+            description = "Лёгкая модель Google Gemma 3. Внимание: gated-репозиторий — требуется токен HF и принятие лицензии на странице HF.",
             downloadUrl = "https://huggingface.co/litert-community/Gemma3-1B-IT/resolve/main/gemma3-1b-it-int4.task",
             requiresHfToken = true
-        ),
-        ModelRecommendation(
-            title = "Gemma 3n E2B-it (открыть в AI Edge Gallery)",
-            filename = "gemma-3n-e2b-it.task",
-            sizeFormatted = "~2.9 ГБ",
-            ramUsage = "~3.5 ГБ RAM",
-            speedMi11T = "8-15 ток/сек",
-            huggingFaceUrl = "https://huggingface.co/litert-community/gemma-3n-E2B-it-litert-lm",
-            description = "Нативная модель Google для галереи. Прямой ссылки нет — скачай через google-ai-edge/gallery.",
-            downloadUrl = ""
         )
     )
 
@@ -254,8 +266,112 @@ class LocalModelManager @Inject constructor(
     var hfToken: String
         get() = context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE).getString("hf_token", "") ?: ""
         set(value) {
-            context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE).edit().putString("hf_token", value.trim()).apply()
+            val clean = value.trim().removePrefix("Bearer ").trim().replace(Regex("[\\r\\n\\t\\s]"), "")
+            context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE).edit().putString("hf_token", clean).apply()
         }
+
+    /** Свободная оперативная память (RAM) устройства, байт. */
+    fun getAvailableRamBytes(): Long = try {
+        val actMan = context.getSystemService(Context.ACTIVITY_SERVICE) as? android.app.ActivityManager
+        val memInfo = android.app.ActivityManager.MemoryInfo()
+        actMan?.getMemoryInfo(memInfo)
+        memInfo.availMem
+    } catch (_: Exception) { -1L }
+
+    /** Общая оперативная память (RAM) устройства, байт. */
+    fun getTotalRamBytes(): Long = try {
+        val actMan = context.getSystemService(Context.ACTIVITY_SERVICE) as? android.app.ActivityManager
+        val memInfo = android.app.ActivityManager.MemoryInfo()
+        actMan?.getMemoryInfo(memInfo)
+        memInfo.totalMem
+    } catch (_: Exception) { -1L }
+
+    /**
+     * Автоматический расчет размера контекста по свободной RAM.
+     * При необходимости учитывает физический лимит скомпилированного KV-кэша модели (например, ekv1280).
+     */
+    fun calculateAutoContextTokens(modelPathOrFilename: String? = null): Int {
+        val freeBytes = getAvailableRamBytes()
+        val freeMb = if (freeBytes > 0) freeBytes / (1024 * 1024) else 2500
+
+        val autoTokens = when {
+            freeMb >= 3500 -> 4096
+            freeMb >= 2200 -> 3072
+            freeMb >= 1400 -> 2048
+            freeMb >= 900  -> 1280
+            else           -> 1024
+        }
+
+        if (!modelPathOrFilename.isNullOrBlank()) {
+            val modelLimit = OnDeviceLlmEngine.detectModelMaxTokens(modelPathOrFilename)
+            if (modelLimit in 512..8192) return minOf(autoTokens, modelLimit)
+        }
+        return autoTokens
+    }
+
+    /** Режим выбора контекста: "auto" (по RAM) или "manual" (фиксированный). */
+    var onDeviceContextMode: String
+        get() = context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE)
+            .getString("context_mode", "auto") ?: "auto"
+        set(value) {
+            context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE)
+                .edit().putString("context_mode", value).apply()
+        }
+
+    /** Пользовательский размер контекста при ручном режиме (1024..8192). */
+    var onDeviceManualContext: Int
+        get() = context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE)
+            .getInt("context_manual", 2048)
+        set(value) {
+            context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE)
+                .edit().putInt("context_manual", value).apply()
+        }
+
+    /** Итоговый контекст модели с учетом настроек пользователя и лимитов файла. */
+    fun getEffectiveContextLimit(modelPathOrFilename: String? = null): Int {
+        val mode = onDeviceContextMode
+        val rawLimit = if (mode == "manual") onDeviceManualContext else calculateAutoContextTokens(modelPathOrFilename)
+        if (!modelPathOrFilename.isNullOrBlank()) {
+            val modelLimit = OnDeviceLlmEngine.detectModelMaxTokens(modelPathOrFilename)
+            if (modelLimit in 512..8192) return minOf(rawLimit, modelLimit)
+        }
+        return rawLimit
+    }
+
+    /** Флаг режима Lite LLM (чистый текст + авто-эмоции). */
+    var isLiteLlmEnabled: Boolean
+        get() = context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE)
+            .getBoolean("lite_llm_mode", true)
+        set(value) {
+            context.getSharedPreferences("asuna_local", Context.MODE_PRIVATE)
+                .edit().putBoolean("lite_llm_mode", value).apply()
+        }
+
+    /** Проверяет валидность токена HuggingFace через api/whoami-v2. */
+    suspend fun verifyHfToken(token: String): Result<String> = withContext(Dispatchers.IO) {
+        val clean = token.trim().removePrefix("Bearer ").trim().replace(Regex("[\\r\\n\\t\\s]"), "")
+        if (clean.isBlank()) return@withContext Result.failure(IllegalArgumentException("Токен пуст"))
+        try {
+            val req = Request.Builder()
+                .url("https://huggingface.co/api/whoami-v2")
+                .header("Authorization", "Bearer $clean")
+                .get()
+                .build()
+            httpClient.newCall(req).execute().use { resp ->
+                if (resp.isSuccessful) {
+                    val body = resp.body?.string().orEmpty()
+                    val username = Regex(""""name"\s*:\s*"([^"]+)"""").find(body)?.groupValues?.get(1) ?: "OK"
+                    Result.success("Токен действителен (HF: $username)")
+                } else if (resp.code == 401 || resp.code == 403) {
+                    Result.failure(RuntimeException("HuggingFace отклонил токен (Код ${resp.code}: неверный ключ или нет прав 'read')"))
+                } else {
+                    Result.failure(RuntimeException("Ошибка проверки HF: HTTP ${resp.code}"))
+                }
+            }
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
 
     /** Свободное место на внутреннем диске, байт. */
     fun freeDiskBytes(): Long = try {
@@ -291,14 +407,28 @@ class LocalModelManager @Inject constructor(
         } else {
             val already = if (partFile.exists()) partFile.length() else 0L
             val builder = Request.Builder().url(url).get()
-            val token = hfToken
+            val token = hfToken.trim().removePrefix("Bearer ").trim().replace(Regex("[\\r\\n\\t\\s]"), "")
             if (token.isNotBlank()) builder.header("Authorization", "Bearer $token")
             if (already > 0) builder.header("Range", "bytes=$already-")
 
             httpClient.newCall(builder.build()).execute().use { resp ->
                 val code = resp.code
                 if (code == 401 || code == 403) {
-                    throw RuntimeException("HuggingFace не пускает: нужна авторизация. Вставь токен HF в поле выше (Model Scope / gated-модель).")
+                    val errCode = resp.header("x-error-code").orEmpty()
+                    val errMessage = resp.header("x-error-message").orEmpty()
+                    val bodySnippet = try { resp.body?.string()?.take(250).orEmpty() } catch (_: Exception) { "" }
+                    val combined = "$errCode $errMessage $bodySnippet"
+
+                    val detailedMsg = when {
+                        combined.contains("GatedRepo", true) || combined.contains("restricted", true) || combined.contains("license", true) ->
+                            "Доступ к модели '${rec.title}' ограничен (Gated Repo Google). " +
+                            "Чтобы скачать: 1) Убедись, что токен сохранён. 2) Нажми кнопку 'Страница', зайди под своим аккаунтом HF и нажми 'Agree and access repository' (прими лицензию Google)."
+                        token.isBlank() ->
+                            "Для скачивания этой модели нужен токен HuggingFace. Вставь свой токен в поле выше и нажми 'Сохранить токен'."
+                        else ->
+                            "HuggingFace не пускает (HTTP $code). Проверь валидность токена кнопкой 'Проверить'."
+                    }
+                    throw RuntimeException(detailedMsg)
                 }
                 if (code == 416) {
                     // Файл уже докачан полностью
@@ -370,7 +500,7 @@ class LocalModelManager @Inject constructor(
             sizeBytes = targetFile.length(),
             format = format,
             recommendedThreads = 4,
-            recommendedContext = if (rec.filename.contains("ekv4096")) 4096 else 1280
+            recommendedContext = OnDeviceLlmEngine.detectModelMaxTokens(rec.filename)
         )
         val list = getImportedModels().toMutableList()
         list.removeAll { it.fileName == rec.filename }

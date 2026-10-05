@@ -109,14 +109,14 @@ import kotlinx.serialization.json.JsonPrimitive
 @Composable
 fun BottomBar(
     currentModel: String,
-    isPickupMode: Boolean,
     onPttDown: () -> Unit,
     onPttUp: () -> Unit,
     onSettingsClick: () -> Unit,
     onModelClick: () -> Unit,
     onChatClick: () -> Unit,
     onLocalModelsClick: () -> Unit,
-    onTogglePickupMode: () -> Unit,
+    isPickupMode: Boolean = false,
+    onTogglePickupMode: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -129,18 +129,11 @@ fun BottomBar(
             horizontalArrangement = Arrangement.SpaceEvenly,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            NavButton(icon = Icons.Default.Chat, onClick = onChatClick, contentDesc = "История чата", size = 38)
-            NavButton(icon = Icons.Default.SwapHoriz, onClick = onModelClick, contentDesc = "Сменить аватар", size = 38)
-            NavButton(
-                icon = Icons.Default.Favorite,
-                onClick = onTogglePickupMode,
-                contentDesc = "Пикап-тренажёр",
-                size = 38,
-                tint = if (isPickupMode) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground
-            )
+            NavButton(icon = Icons.Default.Chat, onClick = onChatClick, contentDesc = "История чата", size = 42)
+            NavButton(icon = Icons.Default.SwapHoriz, onClick = onModelClick, contentDesc = "Сменить аватар", size = 42)
             PttButton(onDown = onPttDown, onUp = onPttUp)
-            NavButton(icon = Icons.Default.Memory, onClick = onLocalModelsClick, contentDesc = "Локальные ИИ модели", size = 38)
-            NavButton(icon = Icons.Default.Settings, onClick = onSettingsClick, contentDesc = "Настройки", size = 38)
+            NavButton(icon = Icons.Default.Memory, onClick = onLocalModelsClick, contentDesc = "Локальные ИИ модели", size = 42)
+            NavButton(icon = Icons.Default.Settings, onClick = onSettingsClick, contentDesc = "Настройки", size = 42)
         }
     }
 }

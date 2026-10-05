@@ -24,11 +24,11 @@ class LlmClientParseTest {
     }
 
     @Test
-    fun `незакрытый live2d — тег и JSON скрыты из display, action по умолчанию`() {
+    fun `незакрытый live2d — тег и JSON скрыты из display, action подбирается по смыслу`() {
         val raw = """Я рада тебя видеть. <live2d>{"expression": "F_FUN""""
         val result = client.parseResponse(raw)
         assertEquals("Я рада тебя видеть.", result.display)
-        assertEquals("F_NOMAL", result.action.expression)
+        assertTrue(result.action.expression in listOf("F_WARM_SMILE", "F_FUN_SMILE", "F_FUN"))
         assertNull(result.toolCall)
     }
 

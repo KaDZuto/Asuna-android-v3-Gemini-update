@@ -255,6 +255,92 @@ fun LocalModelsSheetContent(
             }
         }
 
+        Spacer(Modifier.height(14.dp))
+        Text("⚙ Контекст и Lite LLM (Оптимизация RAM)", fontWeight = FontWeight.Bold, fontSize = 14.sp)
+        Spacer(Modifier.height(4.dp))
+
+        val freeRamMb = localModelManager.getAvailableRamBytes().let { if (it > 0) it / 1024 / 1024 else -1L }
+        val totalRamMb = localModelManager.getTotalRamBytes().let { if (it > 0) it / 1024 / 1024 else -1L }
+        var contextMode by remember { mutableStateOf(localModelManager.onDeviceContextMode) }
+        var manualContext by remember { mutableStateOf(localModelManager.onDeviceManualContext) }
+        var isLiteLlm by remember { mutableStateOf(localModelManager.isLiteLlmEnabled) }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+        ) {
+            Column(Modifier.padding(12.dp)) {
+                if (freeRamMb > 0) {
+                    Text("Свободно RAM: $freeRamMb МБ / $totalRamMb МБ", fontSize = 12.sp, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
+                }
+                Spacer(Modifier.height(6.dp))
+                Text("Размер контекста On-Device модели:", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(vertical = 4.dp)) {
+                    Box(modifier = Modifier.weight(1f)) {
+                        ChipToggle(
+                            selected = contextMode == "auto",
+                            label = "Авто (по RAM)",
+                            onClick = {
+                                contextMode = "auto"
+                                localModelManager.onDeviceContextMode = "auto"
+                            }
+                        )
+                    }
+                    Box(modifier = Modifier.weight(1f)) {
+                        ChipToggle(
+                            selected = contextMode == "manual",
+                            label = "Вручную ($manualContext)",
+                            onClick = {
+                                contextMode = "manual"
+                                localModelManager.onDeviceContextMode = "manual"
+                            }
+                        )
+                    }
+                }
+                if (contextMode == "manual") {
+                    Spacer(Modifier.height(4.dp))
+                    Text("Выберите лимит токенов:", fontSize = 11.sp, color = MaterialTheme.colorScheme.outline)
+                    val presets = listOf(1024, 1280, 2048, 3072, 4096)
+                    Row(horizontalArrangement = Arrangement.spacedBy(4.dp), modifier = Modifier.fillMaxWidth()) {
+                        presets.forEach { tokens ->
+                            Box(modifier = Modifier.weight(1f)) {
+                                ChipToggle(
+                                    selected = manualContext == tokens,
+                                    label = "$tokens",
+                                    onClick = {
+                                        manualContext = tokens
+                                        localModelManager.onDeviceManualContext = tokens
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+                val effectiveTokens = localModelManager.getEffectiveContextLimit()
+                Text("Итоговый контекст: $effectiveTokens токенов", fontSize = 11.sp, color = MaterialTheme.colorScheme.outline)
+
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("⚡ Режим Lite LLM (Текст + авто-эмоции)", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                        Text("Сжимает системный промпт с 1200 до ~100 токенов, а эмоции Асуны оцениваются автоматически. Идеально для 0.5B и 1.5B моделей.", fontSize = 10.sp, color = MaterialTheme.colorScheme.outline)
+                    }
+                    Spacer(Modifier.width(8.dp))
+                    androidx.compose.material3.Switch(
+                        checked = isLiteLlm,
+                        onCheckedChange = {
+                            isLiteLlm = it
+                            localModelManager.isLiteLlmEnabled = it
+                        }
+                    )
+                }
+            }
+        }
+
         Spacer(Modifier.height(16.dp))
         Text("⬇ Скачать модель прямо из приложения", fontWeight = FontWeight.Bold, fontSize = 14.sp)
         Spacer(Modifier.height(2.dp))
@@ -267,17 +353,27 @@ fun LocalModelsSheetContent(
             )
         }
 
-        // Токен HuggingFace — нужен только для gated-моделей (Gemma)
+        // Токен HuggingFace — нужен только для gated-моделей (Gemma 3)
         var hfToken by remember { mutableStateOf(localModelManager.hfToken) }
+        var verifyingToken by remember { mutableStateOf(false) }
         OutlinedTextField(
             value = hfToken,
-            onValueChange = { hfToken = it },
-            label = { Text("Токен HuggingFace (необязательно)", fontSize = 12.sp) },
+            onValueChange = {
+                hfToken = it
+                localModelManager.hfToken = it
+            },
+            label = { Text("Токен HuggingFace (необязательно, только для Gemma 3)", fontSize = 12.sp) },
             singleLine = true,
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 6.dp),
             textStyle = MaterialTheme.typography.bodySmall
+        )
+        Text(
+            "Gemma 4, Qwen и Phi открыты и скачиваются БЕЗ токена. Токен нужен только для gated-модели Gemma 3.",
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.outline,
+            modifier = Modifier.padding(top = 2.dp)
         )
         Row(
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -286,7 +382,19 @@ fun LocalModelsSheetContent(
             OutlinedButton(onClick = {
                 localModelManager.hfToken = hfToken
                 Toast.makeText(context, "Токен сохранён", Toast.LENGTH_SHORT).show()
-            }) { Text("Сохранить токен", fontSize = 12.sp) }
+            }) { Text("Сохранить", fontSize = 12.sp) }
+            OutlinedButton(
+                enabled = !verifyingToken && hfToken.isNotBlank(),
+                onClick = {
+                    verifyingToken = true
+                    coroutineScope.launch {
+                        val res = localModelManager.verifyHfToken(hfToken)
+                        verifyingToken = false
+                        res.onSuccess { msg -> Toast.makeText(context, "✅ $msg", Toast.LENGTH_LONG).show() }
+                        res.onFailure { err -> Toast.makeText(context, "❌ ${err.message}", Toast.LENGTH_LONG).show() }
+                    }
+                }
+            ) { Text(if (verifyingToken) "Проверка..." else "Проверить", fontSize = 12.sp) }
             OutlinedButton(onClick = {
                 val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse("https://huggingface.co/settings/tokens"))
                 context.startActivity(intent)

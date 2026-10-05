@@ -129,7 +129,11 @@ fun SettingsSheetContent(
     onClose: () -> Unit,
     onOpenMemorySheet: () -> Unit = {},
     onBackgroundChanged: () -> Unit = {},
-    onOpenLocalModels: () -> Unit = {}
+    onOpenLocalModels: () -> Unit = {},
+    isPickupMode: Boolean = false,
+    pickupScenario: com.vectorheart.asuna.pickup.PickupMode.Scenario? = null,
+    onTogglePickupMode: () -> Unit = {},
+    localModelManager: com.vectorheart.asuna.localai.LocalModelManager? = null
 ) {
     val context = LocalContext.current
     val prefs = remember { context.getSharedPreferences("asuna_settings", android.content.Context.MODE_PRIVATE) }
@@ -339,6 +343,81 @@ fun SettingsSheetContent(
                 onBackgroundChanged()
             }) {
                 Text("Сбросить")
+            }
+        }
+
+        // Секция: Пикап-тренажёр (перенесённая с главного экрана)
+        Spacer(Modifier.height(18.dp))
+        Text("Тренажёр общения и знакомств", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        Text(
+            "Тренировка флирта и спонтанных диалогов с Асуной в случайных жизненных ситуациях.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.outline
+        )
+        Spacer(Modifier.height(6.dp))
+        if (isPickupMode && pickupScenario != null) {
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+            ) {
+                Column(Modifier.padding(10.dp)) {
+                    Text("Активен сценарий: ${pickupScenario.location}", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Text(pickupScenario.situation, fontSize = 11.sp)
+                }
+            }
+            Button(
+                onClick = onTogglePickupMode,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Выйти из режима тренажёра")
+            }
+        } else {
+            OutlinedButton(
+                onClick = onTogglePickupMode,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Icon(Icons.Default.Favorite, contentDescription = null, modifier = Modifier.size(18.dp), tint = MaterialTheme.colorScheme.primary)
+                Spacer(Modifier.width(6.dp))
+                Text("Запустить сценарий знакомства")
+            }
+        }
+
+        // Секция: Lite LLM и контекст
+        if (localModelManager != null) {
+            Spacer(Modifier.height(18.dp))
+            Text("Оптимизация On-Device и Lite LLM", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+            val freeRamMb = localModelManager.getAvailableRamBytes().let { if (it > 0) it / 1024 / 1024 else -1L }
+            var isLite by remember { mutableStateOf(localModelManager.isLiteLlmEnabled) }
+            Card(
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp)
+            ) {
+                Column(Modifier.padding(10.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("⚡ Режим Lite LLM", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                            Text("Сжимает системный промпт в 10 раз (~100 токенов вместо 1200). Эмоции и движения подбираются автоматически.", fontSize = 10.sp, color = MaterialTheme.colorScheme.outline)
+                        }
+                        androidx.compose.material3.Switch(
+                            checked = isLite,
+                            onCheckedChange = {
+                                isLite = it
+                                localModelManager.isLiteLlmEnabled = it
+                            }
+                        )
+                    }
+                    if (freeRamMb > 0) {
+                        Spacer(Modifier.height(4.dp))
+                        val eff = localModelManager.getEffectiveContextLimit()
+                        Text("Свободно RAM: $freeRamMb МБ • Контекст: $eff токенов", fontSize = 10.sp, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
             }
         }
 

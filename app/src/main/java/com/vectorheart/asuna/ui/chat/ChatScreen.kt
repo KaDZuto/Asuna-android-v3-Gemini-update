@@ -612,7 +612,6 @@ fun ChatScreen(
         // Нижняя панель управления
         BottomBar(
             currentModel = currentAvatarModel,
-            isPickupMode = isPickupMode,
             onPttDown = {
                 if (!hasMicPermission) {
                     micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
@@ -632,7 +631,6 @@ fun ChatScreen(
             onModelClick = { showModelSheet = true },
             onChatClick = { showChatSheet = true },
             onLocalModelsClick = { showLocalModelsSheet = true },
-            onTogglePickupMode = { togglePickupMode() },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .zIndex(20f)
@@ -724,7 +722,11 @@ fun ChatScreen(
                 onOpenMemorySheet = {
                     showSettingsSheet = false
                     showMemorySheet = true
-                }
+                },
+                isPickupMode = isPickupMode,
+                pickupScenario = pickupScenario,
+                onTogglePickupMode = { togglePickupMode() },
+                localModelManager = localModelManager
             )
         }
     }

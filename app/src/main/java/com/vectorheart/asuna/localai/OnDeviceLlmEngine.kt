@@ -42,24 +42,27 @@ class OnDeviceLlmEngine @Inject constructor(
     @Synchronized
     fun ensureLoaded(
         modelPath: String,
-        maxTokens: Int = 1024,
-        maxContextTokens: Int = 2048,
+        maxTokens: Int = 2048,
         temperature: Float = 0.85f
     ) {
-        if (session != null && loadedPath == modelPath) return
+        if (session != null && loadedPath == modelPath && this.maxContextTokens == maxTokens) return
         close()
         try {
+            val detectedLimit = detectModelMaxTokens(modelPath)
+            // Если у скомпилированной модели есть явный лимит KV-кэша (например, ekv1280), не запрашиваем больше него
+            val effectiveTokens = if (detectedLimit in 512..8192) minOf(maxTokens, detectedLimit) else maxTokens
+
             val options = LlmInference.LlmInferenceOptions.builder()
                 .setModelPath(modelPath)
-                .setMaxTokens(maxTokens)
+                .setMaxTokens(effectiveTokens)
                 .setMaxTopK(40)
                 .build()
             val inf = LlmInference.createFromOptions(context, options)
             inference = inf
             loadedPath = modelPath
-            this.maxContextTokens = maxContextTokens
+            this.maxContextTokens = effectiveTokens
             openSession(temperature)
-            Log.d(TAG, "OnDevice model loaded: $modelPath")
+            Log.d(TAG, "OnDevice model loaded: $modelPath (contextLimit=$effectiveTokens, requested=$maxTokens, detectedModelLimit=$detectedLimit)")
         } catch (e: Exception) {
             Log.e(TAG, "Failed to load on-device model: ${e.message}", e)
             inference = null
@@ -134,7 +137,14 @@ class OnDeviceLlmEngine @Inject constructor(
         val s = session ?: throw IllegalStateException("On-device модель не загружена — сначала выбери .task модель")
 
         if (!contextInjected && systemPrompt.isNotBlank()) {
-            s.addQueryChunk(systemPrompt)
+            val sysTokens = countTokens(systemPrompt)
+            val safePrompt = if (maxContextTokens > 0 && sysTokens >= maxContextTokens - 150) {
+                Log.w(TAG, "System prompt ($sysTokens tokens) too close to limit ($maxContextTokens). Trimming prompt.")
+                systemPrompt.take((maxContextTokens * 2).coerceAtLeast(300))
+            } else {
+                systemPrompt
+            }
+            s.addQueryChunk(safePrompt)
             contextInjected = true
         }
         s.addQueryChunk(userText)
@@ -222,5 +232,23 @@ class OnDeviceLlmEngine @Inject constructor(
 
     companion object {
         private const val TAG = "OnDeviceLlmEngine"
+
+        /** Определяет скомпилированный лимит KV-кэша модели из её имени (например, _ekv4096.task -> 4096) */
+        fun detectModelMaxTokens(pathOrFilename: String): Int {
+            val lower = pathOrFilename.lowercase()
+            val match = Regex("""[_\-\.]ekv(\d+)""").find(lower)
+            if (match != null) {
+                return match.groupValues[1].toIntOrNull() ?: 2048
+            }
+            return when {
+                lower.contains("ekv4096") || lower.contains("4096") -> 4096
+                lower.contains("ekv1280") || lower.contains("1280") -> 1280
+                lower.contains("ekv2048") || lower.contains("2048") -> 2048
+                lower.contains("ekv8192") || lower.contains("8192") -> 8192
+                lower.contains("gemma-4") || lower.contains("gemma4") -> 4096
+                lower.contains("phi-4") || lower.contains("phi4") -> 4096
+                else -> 2048
+            }
+        }
     }
 }

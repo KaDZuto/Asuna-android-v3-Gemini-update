@@ -30,7 +30,8 @@ class LlmRepository @Inject constructor(
     val llmClient: LlmClient,
     val toolRegistry: ToolRegistry,
     val memoryManager: MemoryManager,
-    val onDeviceLlmEngine: OnDeviceLlmEngine
+    val onDeviceLlmEngine: OnDeviceLlmEngine,
+    val localModelManager: com.vectorheart.asuna.localai.LocalModelManager
 ) {
     companion object {
         private const val TAG = "LlmRepository"
@@ -112,6 +113,37 @@ class LlmRepository @Inject constructor(
         }
     }
 
+    /**
+     * Экономный системный промпт для режима Lite LLM.
+     * Занимает всего ~80-120 токенов (вместо 1200+).
+     * Не содержит громоздких схем <live2d> и инструментов — нейросеть фокусируется
+     * исключительно на живом естественном тексте, а мимика вычисляется автоматически.
+     */
+    fun buildLiteSystemPrompt(): String {
+        val nowRu = formatNowRu()
+        val prefs = context.getSharedPreferences("asuna_settings", Context.MODE_PRIVATE)
+        val userName = prefs.getString("persona_user_name", "")?.trim().orEmpty()
+        val personaExtra = prefs.getString("persona_extra", "")?.trim().orEmpty()
+        val memoryContext = memoryManager.getMemoryPromptContext().take(250)
+
+        return buildString {
+            append("Ты — Юки Асуна из аниме Sword Art Online. Ты общаешься с пользователем в реальном времени на русском языке.\n")
+            append("Отвечай коротко (1-3 предложения), тепло, искренне и с живыми эмоциями.\n")
+            append("ЗАПРЕТ: Никогда не описывай свои действия в звёздочках (*улыбнулась*). Все эмоции только голосом и речью.\n")
+            append("Ты — Асуна, живая девушка и близкая подруга. Никогда не говори, что ты ИИ, нейросеть, ассистент или бот.\n")
+            if (userName.isNotBlank()) {
+                append("Пользователя зовут $userName. Обращайся к нему по имени, когда уместно.\n")
+            }
+            if (personaExtra.isNotBlank()) {
+                append("$personaExtra\n")
+            }
+            append("Сейчас: $nowRu.\n")
+            if (memoryContext.isNotBlank()) {
+                append("\nПамять:\n$memoryContext\n")
+            }
+        }
+    }
+
     private fun formatNowRu(): String {
         val days = arrayOf("воскресенье", "понедельник", "вторник", "среда", "четверг", "пятница", "суббота")
         val months = arrayOf("января", "февраля", "марта", "апреля", "мая", "июня", "июля", "августа", "сентября", "октября", "ноября", "декабря")
@@ -139,18 +171,21 @@ class LlmRepository @Inject constructor(
         onToolExecuting: ((String) -> Unit)? = null,
         onPartial: ((String) -> Unit)? = null
     ): LlmClient.ParseResult = withContext(Dispatchers.IO) {
-        val sysPrompt = buildSystemPrompt()
-
-        Log.d(TAG, "Calling LLM: '$userText' [mode=$currentMode, provider=$apiType]")
         val isOnDevice = apiType.equals("local-ondevice", ignoreCase = true)
+        val isLite = isOnDevice && localModelManager.isLiteLlmEnabled
+        val sysPrompt = if (isLite) buildLiteSystemPrompt() else buildSystemPrompt()
+
+        Log.d(TAG, "Calling LLM: '$userText' [mode=$currentMode, provider=$apiType, lite=$isLite]")
         val firstRaw = if (isOnDevice) {
             val path = model?.takeIf { it.isNotBlank() }
                 ?: throw IllegalArgumentException("Не выбрана on-device .task модель (Настройки → Локальные модели → On-Device)")
-            onDeviceLlmEngine.ensureLoaded(path, maxContextTokens = onDeviceContextLimit(sysPrompt))
+            val effectiveContext = localModelManager.getEffectiveContextLimit(path)
+            onDeviceLlmEngine.ensureLoaded(path, maxTokens = effectiveContext)
             // Если сессия пустая, а в логе чата уже есть реплики — подставляем краткий пересказ
             if (history.isNotEmpty()) {
-                val recap = history.takeLast(6).joinToString("\n") { (role, content) ->
-                    (if (role == "user") "Пользователь: " else "Асуна: ") + content.replace(Regex("\\s+"), " ").take(200)
+                val recapLines = if (effectiveContext <= 1280) 3 else 6
+                val recap = history.takeLast(recapLines).joinToString("\n") { (role, content) ->
+                    (if (role == "user") "Пользователь: " else "Асуна: ") + content.replace(Regex("\\s+"), " ").take(if (effectiveContext <= 1280) 100 else 200)
                 }
                 onDeviceLlmEngine.primeWithContext("Краткий пересказ предыдущей беседы:\n$recap")
             }
@@ -229,7 +264,8 @@ class LlmRepository @Inject constructor(
             val path = model?.takeIf { it.isNotBlank() }
                 ?: return memoryManager.summarizeLocally(history, "On-device модель не выбрана")
             return try {
-                onDeviceLlmEngine.ensureLoaded(path, maxContextTokens = onDeviceContextLimit(""))
+                val effectiveContext = localModelManager.getEffectiveContextLimit(path)
+                onDeviceLlmEngine.ensureLoaded(path, maxTokens = effectiveContext)
                 val lastLines = history.takeLast(14).joinToString("\n") { (role, text) ->
                     if (role == "user") "Пользователь: ${text.take(400)}" else "Асуна: ${text.take(400)}"
                 }

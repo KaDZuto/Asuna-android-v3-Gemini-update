@@ -96,10 +96,15 @@ class LlmClient @Inject constructor(
         // Незакрытые теги (ответ оборвался по max_tokens) тоже прячем
         display = Regex("""<live2d>[\s\S]*$""").replace(display, "")
         display = Regex("""<tool>[\s\S]*$""").replace(display, "")
-        display = Regex("""<think>[\s\S]*$""", RegexOption.IGNORE_CASE).replace(display, "")
         display = display.replace(Regex("""</?(live2d|tool|think)>""", RegexOption.IGNORE_CASE), "").trim()
 
-        return ParseResult(display, action, toolCall)
+        val finalAction = if (match == null || (action.expression == "F_NOMAL" && action.motion_group == "idle" && action.motion_index == 0 && action.head_x == 0f && action.head_y == 0f)) {
+            com.vectorheart.asuna.avatar.EmotionMotionEvaluator.evaluate(display)
+        } else {
+            action
+        }
+
+        return ParseResult(display, finalAction, toolCall)
     }
 
     fun parseToolCall(rawText: String): ToolCall? {
